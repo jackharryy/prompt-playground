@@ -114,13 +114,19 @@ const App = () => {
 
   const handleListen = () => {
     if (!window.speechSynthesis) return
-    const utterance = new SpeechSynthesisUtterance(story)
-    utterance.rate = 1
-    utterance.pitch = 1.1
-    setTtsState('speaking')
-    utterance.onend = () => setTtsState('ready')
-    speechSynthesis.cancel()
-    speechSynthesis.speak(utterance)
+    const availableVoices = window.speechSynthesis.getVoices();
+    // Find a specific voice (e.g., Google US English)
+    const selectedVoice = availableVoices.find(voice => voice.name === "Google US English");
+    if (selectedVoice) {
+      const utterance = new SpeechSynthesisUtterance(story)
+      utterance.rate = 1
+      utterance.pitch = 1.1
+      utterance.voice = selectedVoice;
+      setTtsState('speaking')
+      utterance.onend = () => setTtsState('ready')
+      speechSynthesis.cancel()
+      speechSynthesis.speak(utterance)
+      }
   }
 
   return (
