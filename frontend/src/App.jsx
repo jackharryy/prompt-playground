@@ -1,37 +1,49 @@
 import { useMemo, useState } from 'react'
+import {
+  Box,
+  Button,
+  Container,
+  Flex,
+  Grid,
+  Heading,
+  SimpleGrid,
+  Stack,
+  Text,
+  VStack,
+} from '@chakra-ui/react'
 
 const categories = [
   {
     key: 'character',
-    title: 'Character',
-    subtitle: 'Choose your story hero',
+    title: 'Hero',
+    subtitle: 'Pick a hero',
     options: ['Brave astronaut', 'Friendly dragon', 'Curious detective', 'Magic unicorn'],
   },
   {
     key: 'action',
-    title: 'What should they do?',
-    subtitle: 'Pick the adventure action',
+    title: 'Action',
+    subtitle: 'Pick what to do',
     options: ['find a hidden treasure', 'solve a secret mystery', 'help a friend', 'explore a new planet'],
   },
   {
     key: 'topic',
-    title: 'Topic',
-    subtitle: 'Choose the story theme',
+    title: 'World',
+    subtitle: 'Pick a place',
     options: ['space school', 'jungle world', 'fantasy kingdom', 'science fair'],
   },
   {
     key: 'style',
-    title: 'Character Style',
-    subtitle: 'Make the character special',
+    title: 'Style',
+    subtitle: 'Pick a look',
     options: ['sparkly', 'brave and bold', 'silly and funny', 'peaceful and kind'],
   },
 ]
 
 const categoryColors = {
-  character: 'from-fuchsia-400 to-violet-500',
-  action: 'from-amber-300 to-orange-500',
-  topic: 'from-cyan-400 to-sky-600',
-  style: 'from-lime-300 to-emerald-500',
+  character: ['#f9a8d4', '#a78bfa'],
+  action: ['#fb923c', '#f97316'],
+  topic: ['#38bdf8', '#0ea5e9'],
+  style: ['#86efac', '#4ade80'],
 }
 
 const categoryIcons = {
@@ -50,11 +62,11 @@ const optionEmojis = {
 
 const storyTemplates = [
   ({ character, action, topic, style }) =>
-    `Once upon a time in a ${topic}, a ${style} ${character} decided to ${action}. The friends cheered as the story became magical!`,
+    `Once upon a time in ${topic}, a ${style} ${character} decided to ${action}. It was a magical adventure!`,
   ({ character, action, topic, style }) =>
-    `In a colorful ${topic}, a ${style} ${character} could not wait to ${action}. Every step felt like a playful adventure.`,
+    `In ${topic}, a ${style} ${character} got ready to ${action}. It felt like a fun surprise!`,
   ({ character, action, topic, style }) =>
-    `A ${style} ${character} woke up ready for a new day in ${topic}. Their goal was to ${action} and make everyone smile.`,
+    `A ${style} ${character} woke up in ${topic} and wanted to ${action}. Everyone smiled!`,
 ]
 
 const App = () => {
@@ -69,12 +81,12 @@ const App = () => {
   const [ttsState, setTtsState] = useState('ready')
 
   const currentCategory = categories[currentStep]
-  const isSelected = selected[currentCategory.key]
+  const isSelected = Boolean(selected[currentCategory.key])
 
   const story = useMemo(() => {
     const filled = categories.every((category) => selected[category.key])
     if (!filled) {
-      return 'Pick a block in each category to build your story. Then listen or regenerate the final prompt.'
+      return 'Pick one block for each card. Then listen or make a new story.'
     }
     const template = storyTemplates[regenerateSeed % storyTemplates.length]
     return template(selected)
@@ -101,12 +113,8 @@ const App = () => {
   }
 
   const handleListen = () => {
-    const message = story
-    if (!window.speechSynthesis) {
-      alert('Text-to-speech is not supported in this browser.')
-      return
-    }
-    const utterance = new SpeechSynthesisUtterance(message)
+    if (!window.speechSynthesis) return
+    const utterance = new SpeechSynthesisUtterance(story)
     utterance.rate = 1
     utterance.pitch = 1.1
     setTtsState('speaking')
@@ -116,148 +124,210 @@ const App = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-200 via-slate-100 to-purple-100 px-4 py-6 sm:px-6">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-soft backdrop-blur-lg sm:p-10">
-        <header className="space-y-4">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-700">AI Scratch Builder</p>
-              <h1 className="mt-2 text-4xl font-semibold text-slate-900 sm:text-5xl">
-                Make a story bot with fun blocks
-              </h1>
-            </div>
-            <div className="rounded-3xl bg-slate-900 px-5 py-4 text-slate-50 shadow-lg shadow-slate-200/40">
-              <p className="text-sm uppercase tracking-[0.2em] text-slate-300">Step</p>
-              <p className="mt-1 text-3xl font-bold text-white">{currentStep + 1} / {categories.length}</p>
-            </div>
-          </div>
-          <div className="rounded-[2rem] border border-sky-200 bg-gradient-to-r from-sky-100 via-slate-100 to-fuchsia-100 p-5 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-700">How to play</p>
-            <div className="mt-3 grid gap-2 text-slate-700 sm:grid-cols-3">
-              <span className="rounded-3xl bg-white/80 px-4 py-3 text-sm font-medium shadow-sm">Pick one block for each stage</span>
-              <span className="rounded-3xl bg-white/80 px-4 py-3 text-sm font-medium shadow-sm">Watch your story appear below</span>
-              <span className="rounded-3xl bg-white/80 px-4 py-3 text-sm font-medium shadow-sm">Press listen or regenerate to play again</span>
-            </div>
-          </div>
-        </header>
+    <Box minH="100vh" px={{ base: 4, md: 6 }} py={6} bg="yellow">
+      <Container maxW="7xl">
+        <Stack spacing={6}>
+          <Box rounded="md" bg="white" p={{ base: 5, md: 8 }} border="1px solid" borderColor="black">
+            <Flex direction={{ base: 'column', md: 'row' }} align="center" justify="space-between" gap={4}>
+              <Box>
+                <Text fontSize="sm" fontWeight="bold" color="blue" letterSpacing="widest">
+                  STORY LAB
+                </Text>
+                <Heading size="2xl" mt={2} color="black">
+                  Build a story!
+                </Heading>
+              </Box>
+              <Box rounded="md" bg="yellow" px={6} py={4} color="black" textAlign="center" border="1px solid" borderColor="black">
+                <Text fontSize="xs" fontWeight="bold" letterSpacing="widest">
+                  STEP
+                </Text>
+                <Text fontSize="3xl" fontWeight="extrabold">
+                  {currentStep + 1} / {categories.length}
+                </Text>
+              </Box>
+            </Flex>
 
-        <div className="space-y-6 rounded-[2.5rem] border border-slate-200 bg-slate-50 p-6 shadow-sm">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="rounded-[2rem] bg-gradient-to-r from-fuchsia-400 via-sky-500 to-emerald-400 p-5 text-slate-950 shadow-lg shadow-fuchsia-300/20">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white">Stage</p>
-              <p className="mt-3 text-3xl font-bold">{categoryIcons[currentCategory.key]} {currentCategory.title}</p>
-              <p className="mt-2 text-sm text-white/90">{currentCategory.subtitle}</p>
-            </div>
-          </div>
-          <div className="space-y-3 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Instructions</p>
-            <ul className="list-disc space-y-2 pl-5 text-slate-600">
-              <li>Choose a fun block below.</li>
-              <li>Then tap Next to build your story.</li>
-              <li>Use Listen to hear it and Regenerate for a new version.</li>
-            </ul>
-          </div>
-        </div>
-
-        <section className="grid gap-6 lg:grid-cols-[1.3fr_0.9fr]">
-          <div className="space-y-6 rounded-[2.5rem] border border-slate-200 bg-slate-50 p-6 shadow-sm">
-            <div className="space-y-2">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-sky-700">{currentCategory.title}</p>
-              <h2 className="text-3xl font-semibold text-slate-900">{currentCategory.subtitle}</h2>
-              <p className="text-slate-600">Pick one colorful block to add to your story robot.</p>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {currentCategory.options.map((option, index) => {
-                const active = selected[currentCategory.key] === option
-                const emoji = optionEmojis[currentCategory.key]?.[index] || '⭐'
-                return (
-                  <button
-                    key={option}
-                    onClick={() => handleSelect(currentCategory.key, option)}
-                    className={`rounded-[2rem] border px-5 py-6 text-left shadow-lg transition-all duration-200 ${active ? `border-transparent bg-gradient-to-r ${categoryColors[currentCategory.key]} text-white shadow-xl shadow-slate-400/20` : `border-slate-200 bg-white text-slate-800 hover:-translate-y-1 hover:border-slate-300 hover:bg-slate-100`}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-3xl">{emoji}</span>
-                      <div>
-                        <p className="text-lg font-bold">{option}</p>
-                        <p className="text-sm text-slate-500">Tap me!</p>
-                      </div>
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-            <div className="flex flex-col gap-4 rounded-[2rem] border border-slate-200 bg-gradient-to-r from-sky-200 via-cyan-100 to-white p-5 shadow-sm">
-              <p className="text-sm uppercase tracking-[0.2em] text-sky-700">Ready to move?</p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={handleBack}
-                  disabled={currentStep === 0}
-                  className="rounded-3xl border border-slate-300 bg-white px-5 py-4 text-base font-semibold text-slate-900 transition disabled:cursor-not-allowed disabled:opacity-50 hover:bg-slate-100"
-                >
-                  ◀️ Back
-                </button>
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  disabled={!isSelected}
-                  className="rounded-3xl bg-gradient-to-r from-fuchsia-500 via-purple-600 to-sky-600 px-5 py-4 text-base font-semibold text-white shadow-lg shadow-fuchsia-300/20 transition disabled:cursor-not-allowed disabled:opacity-50 hover:opacity-95"
-                >
-                  {currentStep === categories.length - 1 ? 'Finish' : 'Next'} ▶️
-                </button>
-              </div>
-              <p className="text-sm text-slate-600">Use the buttons above after choosing a block. You can also change your choice anytime.</p>
-            </div>
-            <div className="flex flex-wrap gap-3 pt-2">
-              {categories.map((category) => (
-                <span
-                  key={category.key}
-                  className="rounded-full bg-gradient-to-r from-slate-100 via-white to-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm"
-                >
-                  {category.title}: {selected[category.key] || 'Pick one'}
-                </span>
+            <SimpleGrid columns={{ base: 1, md: 3 }} gap={4} mt={6}>
+              {['Pick', 'Next', 'Listen'].map((label) => (
+                <Box key={label} rounded="md" bg="yellow" p={4} textAlign="center" border="1px solid" borderColor="black">
+                  <Text fontSize="md" fontWeight="bold" color="black">
+                    {label}
+                  </Text>
+                </Box>
               ))}
-            </div>
-          </div>
+            </SimpleGrid>
+          </Box>
 
-          <aside className="space-y-6 rounded-[2.5rem] border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-6 shadow-sm">
-            <div className="rounded-[2rem] bg-gradient-to-r from-amber-300 via-orange-400 to-red-500 p-5 text-slate-950 shadow-lg shadow-amber-300/20">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white">Your story blocks</p>
-              <div className="mt-4 space-y-2 text-slate-950">
+          <Stack spacing={6} rounded="md" bg="white" p={{ base: 5, md: 8 }} border="1px solid" borderColor="black">
+            <Flex align="center" justify="space-between" wrap="wrap" gap={4}>
+              <Box>
+                <Text fontSize="sm" fontWeight="bold" color="red" letterSpacing="widest">
+                  {categoryIcons[currentCategory.key]} {currentCategory.title}
+                </Text>
+                <Heading size="xl" mt={2} color="black">
+                  {currentCategory.subtitle}
+                </Heading>
+              </Box>
+            </Flex>
+
+            <Box rounded="md" bg="yellow" p={5} border="1px solid" borderColor="black">
+              <Text fontSize="sm" color="black">
+                Tap a block, then tap Next.
+              </Text>
+            </Box>
+          </Stack>
+
+          <Grid templateColumns={{ base: '1fr', lg: '3fr 1fr' }} gap={6}>
+            <Stack spacing={6} rounded="md" bg="white" p={{ base: 5, md: 8 }} border="1px solid" borderColor="black">
+              <Text fontSize="sm" fontWeight="semibold" color="blue" letterSpacing="widest">
+                Choose your block
+              </Text>
+              <SimpleGrid columns={{ base: 1, sm: 2 }} gap={4}>
+                {currentCategory.options.map((option, index) => {
+                  const active = selected[currentCategory.key] === option
+                  const emoji = optionEmojis[currentCategory.key]?.[index] || '⭐'
+                  return (
+                            <Button
+                      key={option}
+                      onClick={() => handleSelect(currentCategory.key, option)}
+                      h="auto"
+                      p={6}
+                      textAlign="left"
+                      borderRadius="md"
+                      bg={active ? 'orange' : 'white'}
+                      color={active ? 'white' : 'black'}
+                      border="1px solid"
+                      borderColor={active ? 'black' : 'black'}
+                      _hover={{ transform: 'translateY(-2px)', bg: active ? 'orange' : 'yellow' }}
+                    >
+                      <Flex align="center" gap={4}>
+                        <Text fontSize="4xl">{emoji}</Text>
+                        <Box>
+                          <Text fontSize="lg" fontWeight="bold">
+                            {option}
+                          </Text>
+                          <Text fontSize="sm" color={active ? 'whiteAlpha.800' : 'gray.500'}>
+                            Tap to choose
+                          </Text>
+                        </Box>
+                      </Flex>
+                    </Button>
+                  )
+                })}
+              </SimpleGrid>
+
+              <Stack spacing={4} rounded="md" bg="white" p={5} border="1px solid" borderColor="black">
+                <Text fontSize="sm" fontWeight="bold" color="black">
+                  Navigation
+                </Text>
+                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
+                  <Button
+                    onClick={handleBack}
+                    isDisabled={currentStep === 0}
+                    borderRadius="md"
+                    variant="outline"
+                    borderColor="black"
+                    color="black"
+                  >
+                    ◀️ Back
+                  </Button>
+                  <Button
+                    onClick={handleNext}
+                    isDisabled={!isSelected}
+                    borderRadius="md"
+                    bg="orange"
+                    color="white"
+                    _hover={{ opacity: 0.9 }}
+                  >
+                    {currentStep === categories.length - 1 ? 'Finish' : 'Next'} ▶️
+                  </Button>
+                </SimpleGrid>
+                <Text fontSize="sm" color="black">
+                  Choose first, then tap Next.
+                </Text>
+              </Stack>
+
+              <Flex wrap="wrap" gap={3}>
                 {categories.map((category) => (
-                  <div key={category.key} className="rounded-3xl bg-white/90 p-3 shadow-sm">
-                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{category.title}</p>
-                    <p className="mt-1 text-sm font-semibold text-slate-900">{selected[category.key] || 'Pick one'}</p>
-                  </div>
+                  <Box
+                    key={category.key}
+                    rounded="md"
+                    bg="yellow"
+                    px={4}
+                    py={2}
+                    fontSize="sm"
+                    fontWeight="semibold"
+                    color="black"
+                    border="1px solid"
+                    borderColor="black"
+                  >
+                    {category.title}: {selected[category.key] || 'Pick one'}
+                  </Box>
                 ))}
-              </div>
-            </div>
-          </aside>
-        </section>
+              </Flex>
+            </Stack>
 
-        <section className="rounded-[2.5rem] border border-slate-200 bg-gradient-to-br from-cyan-100 via-slate-50 to-rose-100 p-6 shadow-sm">
-          <p className="text-sm uppercase tracking-[0.2em] text-sky-700">Story preview</p>
-          <p className="mt-4 text-base leading-7 text-slate-700">{story}</p>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <button
-              type="button"
-              onClick={handleListen}
-              className="flex-1 rounded-3xl bg-gradient-to-r from-fuchsia-500 via-purple-600 to-sky-600 px-5 py-4 text-base font-semibold text-white shadow-lg shadow-fuchsia-300/20 transition hover:opacity-95"
-            >
-              {ttsState === 'speaking' ? 'Speaking...' : 'Listen to story'}
-            </button>
-            <button
-              type="button"
-              onClick={handleRegenerate}
-              className="flex-1 rounded-3xl border border-slate-300 bg-white px-5 py-4 text-base font-semibold text-slate-900 transition hover:border-slate-400 hover:bg-slate-100"
-            >
-              Regenerate prompt
-            </button>
-          </div>
-        </section>
-      </div>
-    </div>
+            <Stack spacing={6} rounded="md" bg="whiteAlpha.900" p={{ base: 5, md: 8 }} border="1px solid" borderColor="black">
+              <Box rounded="md" bg="green" p={5} color="black" border="1px solid" borderColor="black">
+                <Text fontSize="sm" fontWeight="bold" letterSpacing="widest">
+                  My picks
+                </Text>
+                <Stack spacing={3} mt={4}>
+                  {categories.map((category) => (
+                    <Box key={category.key} rounded="md" bg="white" p={3} border="1px solid" borderColor="black">
+                      <Text fontSize="xs" letterSpacing="widest" color="black">
+                        {category.title}
+                      </Text>
+                      <Text fontSize="sm" fontWeight="bold" color="black">
+                        {selected[category.key] || 'Pick one'}
+                      </Text>
+                    </Box>
+                  ))}
+                </Stack>
+              </Box>
+            </Stack>
+          </Grid>
+
+          <Box rounded="md" bg="yellow" p={{ base: 5, md: 8 }} border="1px solid" borderColor="black">
+            <Flex align="center" justify="space-between" wrap="wrap" gap={4}>
+              <Text fontSize="sm" fontWeight="bold" letterSpacing="widest" color="blue">
+                Story
+              </Text>
+              <Box rounded="md" bg="white" px={3} py={1} fontSize="xs" fontWeight="bold" color="black" border="1px solid" borderColor="black">
+                Read aloud
+              </Box>
+            </Flex>
+            <Box rounded="md" bg="white" p={6} mt={4} border="1px solid" borderColor="black">
+              <Text fontSize={{ base: 'md', md: 'lg' }} lineHeight="tall" color="black">
+                {story}
+              </Text>
+            </Box>
+            <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3} mt={6}>
+              <Button
+                onClick={handleListen}
+                borderRadius="md"
+                bg="orange"
+                color="white"
+                _hover={{ opacity: 0.9 }}
+              >
+                {ttsState === 'speaking' ? 'Speaking...' : 'Listen'}
+              </Button>
+              <Button
+                onClick={handleRegenerate}
+                borderRadius="md"
+                border="1px solid"
+                borderColor="black"
+                color="black"
+                bg="orange"
+                _hover={{ bg: 'yellow' }}
+              >
+                New story
+              </Button>
+            </SimpleGrid>
+          </Box>
+        </Stack>
+      </Container>
+    </Box>
   )
 }
 
