@@ -108,7 +108,7 @@ const App = () => {
     }
   }
 
-  const handleRegenerate = () => {
+  const handleCast = () => {
     setRegenerateSeed((seed) => seed + 1)
   }
 
@@ -123,208 +123,186 @@ const App = () => {
     speechSynthesis.speak(utterance)
   }
 
-  return (
-    <Box minH="100vh" px={{ base: 4, md: 6 }} py={6} bg="yellow">
-      <Container maxW="7xl">
-        <Stack spacing={6}>
-          <Box rounded="md" bg="white" p={{ base: 5, md: 8 }} border="1px solid" borderColor="black">
-            <Flex direction={{ base: 'column', md: 'row' }} align="center" justify="space-between" gap={4}>
-              <Box>
-                <Text fontSize="sm" fontWeight="bold" color="blue" letterSpacing="widest">
-                  STORY LAB
-                </Text>
-                <Heading size="2xl" mt={2} color="black">
-                  Build a story!
-                </Heading>
-              </Box>
-              <Box rounded="md" bg="yellow" px={6} py={4} color="black" textAlign="center" border="1px solid" borderColor="black">
-                <Text fontSize="xs" fontWeight="bold" letterSpacing="widest">
-                  STEP
-                </Text>
-                <Text fontSize="3xl" fontWeight="extrabold">
-                  {currentStep + 1} / {categories.length}
-                </Text>
-              </Box>
-            </Flex>
+  const stepCards = [
+    {
+      key: 'character',
+      label: 'WHO',
+      icon: '🧙',
+      value: selected.character || 'a hero',
+      unlocked: true,
+      active: currentStep === 0,
+    },
+    {
+      key: 'action',
+      label: 'DOES WHAT',
+      icon: '🎯',
+      value: selected.action || 'an action',
+      unlocked: Boolean(selected.character),
+      active: currentStep === 1,
+    },
+    {
+      key: 'topic',
+      label: 'WHERE',
+      icon: '🌌',
+      value: selected.topic || 'a world',
+      unlocked: Boolean(selected.action),
+      active: currentStep === 2,
+    },
+    {
+      key: 'style',
+      label: 'HOW',
+      icon: '✨',
+      value: selected.style || 'a style',
+      unlocked: Boolean(selected.topic),
+      active: currentStep === 3,
+    },
+  ]
 
-            <SimpleGrid columns={{ base: 1, md: 3 }} gap={4} mt={6}>
-              {['Pick', 'Next', 'Listen'].map((label) => (
-                <Box key={label} rounded="md" bg="yellow" p={4} textAlign="center" border="1px solid" borderColor="black">
-                  <Text fontSize="md" fontWeight="bold" color="black">
-                    {label}
+  const currentStepLabel =
+    currentStep === 0
+      ? 'Choose your hero'
+      : currentStep === 1
+      ? 'Choose the action'
+      : currentStep === 2
+      ? 'Choose the world'
+      : 'Choose the style'
+
+  return (
+    <Box minH="100vh" bg="gray.950" py={8} px={{ base: 4, md: 6 }}>
+      <Container maxW="5xl">
+        <Stack spacing={6}>
+          <Box bg="gray.900" border="2px solid" borderColor="gray.700" rounded="3xl" p={{ base: 5, md: 8 }}>
+            <Text fontSize="xs" fontWeight="bold" color="yellow.300" letterSpacing="widest">
+              SPELL CRAFTER
+            </Text>
+            <Heading size="2xl" mt={3} color="white">
+              Build a simple spell
+            </Heading>
+            <Text fontSize="sm" mt={2} color="gray.400">
+              Tap the current step, choose one option, then cast the spell.
+            </Text>
+          </Box>
+
+          <SimpleGrid columns={{ base: 1, md: 4 }} gap={4}>
+            {stepCards.map((card) => (
+              <Box
+                key={card.key}
+                bg={card.active ? 'orange.300' : card.unlocked ? 'gray.800' : 'gray.700'}
+                color={card.active ? 'black' : 'white'}
+                border="2px solid"
+                borderColor={card.active ? 'orange.300' : 'gray.600'}
+                rounded="3xl"
+                p={5}
+                textAlign="center"
+              >
+                <Text fontSize="3xl">{card.icon}</Text>
+                <Text fontSize="xs" fontWeight="bold" letterSpacing="widest" mt={3}>
+                  {card.label}
+                </Text>
+                <Text fontSize="sm" mt={2} fontWeight="bold">
+                  {card.value}
+                </Text>
+                {!card.unlocked && (
+                  <Text fontSize="xs" mt={2} color="gray.400">
+                    locked
                   </Text>
-                </Box>
-              ))}
+                )}
+              </Box>
+            ))}
+          </SimpleGrid>
+
+          <Box bg="gray.900" border="2px solid" borderColor="gray.700" rounded="3xl" p={{ base: 5, md: 6 }}>
+            <Text fontSize="xs" fontWeight="bold" color="yellow.300" letterSpacing="widest">
+              {currentStepLabel}
+            </Text>
+            <Text fontSize="lg" mt={3} color="white">
+              {currentCategory.subtitle}
+            </Text>
+
+            <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3} mt={5}>
+              {currentCategory.options.map((option, index) => {
+                const active = selected[currentCategory.key] === option
+                const emoji = optionEmojis[currentCategory.key]?.[index] || '⭐'
+                return (
+                  <Button
+                    key={option}
+                    onClick={() => handleSelect(currentCategory.key, option)}
+                    h="auto"
+                    p={5}
+                    textAlign="left"
+                    borderRadius="2xl"
+                    bg={active ? 'orange.300' : 'gray.800'}
+                    color={active ? 'black' : 'white'}
+                    border="2px solid"
+                    borderColor={active ? 'orange.300' : 'gray.700'}
+                    _hover={{ bg: active ? 'orange.300' : 'gray.700' }}
+                  >
+                    <Flex align="center" gap={4}>
+                      <Text fontSize="3xl">{emoji}</Text>
+                      <Box>
+                        <Text fontSize="md" fontWeight="bold">
+                          {option}
+                        </Text>
+                        <Text fontSize="xs" color={active ? 'black' : 'gray.300'}>
+                          {active ? 'Selected' : 'Tap to choose'}
+                        </Text>
+                      </Box>
+                    </Flex>
+                  </Button>
+                )
+              })}
             </SimpleGrid>
           </Box>
 
-          <Stack spacing={6} rounded="md" bg="white" p={{ base: 5, md: 8 }} border="1px solid" borderColor="black">
-            <Flex align="center" justify="space-between" wrap="wrap" gap={4}>
-              <Box>
-                <Text fontSize="sm" fontWeight="bold" color="red" letterSpacing="widest">
-                  {categoryIcons[currentCategory.key]} {currentCategory.title}
-                </Text>
-                <Heading size="xl" mt={2} color="black">
-                  {currentCategory.subtitle}
-                </Heading>
-              </Box>
-            </Flex>
-
-            <Box rounded="md" bg="yellow" p={5} border="1px solid" borderColor="black">
-              <Text fontSize="sm" color="black">
-                Tap a block, then tap Next.
+          {currentStep === categories.length - 1 && (
+            <Box bg="gray.800" border="2px solid" borderColor="gray.700" rounded="3xl" p={5}>
+              <Text fontSize="xs" fontWeight="bold" color="yellow.300" letterSpacing="widest">
+                SPELL READY
               </Text>
-            </Box>
-          </Stack>
-
-          <Grid templateColumns={{ base: '1fr', lg: '3fr 1fr' }} gap={6}>
-            <Stack spacing={6} rounded="md" bg="white" p={{ base: 5, md: 8 }} border="1px solid" borderColor="black">
-              <Text fontSize="sm" fontWeight="semibold" color="blue" letterSpacing="widest">
-                Choose your block
-              </Text>
-              <SimpleGrid columns={{ base: 1, sm: 2 }} gap={4}>
-                {currentCategory.options.map((option, index) => {
-                  const active = selected[currentCategory.key] === option
-                  const emoji = optionEmojis[currentCategory.key]?.[index] || '⭐'
-                  return (
-                            <Button
-                      key={option}
-                      onClick={() => handleSelect(currentCategory.key, option)}
-                      h="auto"
-                      p={6}
-                      textAlign="left"
-                      borderRadius="md"
-                      bg={active ? 'orange' : 'white'}
-                      color={active ? 'white' : 'black'}
-                      border="1px solid"
-                      borderColor={active ? 'black' : 'black'}
-                      _hover={{ transform: 'translateY(-2px)', bg: active ? 'orange' : 'yellow' }}
-                    >
-                      <Flex align="center" gap={4}>
-                        <Text fontSize="4xl">{emoji}</Text>
-                        <Box>
-                          <Text fontSize="lg" fontWeight="bold">
-                            {option}
-                          </Text>
-                          <Text fontSize="sm" color={active ? 'whiteAlpha.800' : 'gray.500'}>
-                            Tap to choose
-                          </Text>
-                        </Box>
-                      </Flex>
-                    </Button>
-                  )
-                })}
-              </SimpleGrid>
-
-              <Stack spacing={4} rounded="md" bg="white" p={5} border="1px solid" borderColor="black">
-                <Text fontSize="sm" fontWeight="bold" color="black">
-                  Navigation
-                </Text>
-                <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
-                  <Button
-                    onClick={handleBack}
-                    isDisabled={currentStep === 0}
-                    borderRadius="md"
-                    variant="outline"
-                    borderColor="black"
-                    color="black"
-                  >
-                    ◀️ Back
-                  </Button>
-                  <Button
-                    onClick={handleNext}
-                    isDisabled={!isSelected}
-                    borderRadius="md"
-                    bg="orange"
-                    color="white"
-                    _hover={{ opacity: 0.9 }}
-                  >
-                    {currentStep === categories.length - 1 ? 'Finish' : 'Next'} ▶️
-                  </Button>
-                </SimpleGrid>
-                <Text fontSize="sm" color="black">
-                  Choose first, then tap Next.
-                </Text>
-              </Stack>
-
-              <Flex wrap="wrap" gap={3}>
-                {categories.map((category) => (
-                  <Box
-                    key={category.key}
-                    rounded="md"
-                    bg="yellow"
-                    px={4}
-                    py={2}
-                    fontSize="sm"
-                    fontWeight="semibold"
-                    color="black"
-                    border="1px solid"
-                    borderColor="black"
-                  >
-                    {category.title}: {selected[category.key] || 'Pick one'}
-                  </Box>
-                ))}
-              </Flex>
-            </Stack>
-
-            <Stack spacing={6} rounded="md" bg="whiteAlpha.900" p={{ base: 5, md: 8 }} border="1px solid" borderColor="black">
-              <Box rounded="md" bg="green" p={5} color="black" border="1px solid" borderColor="black">
-                <Text fontSize="sm" fontWeight="bold" letterSpacing="widest">
-                  My picks
-                </Text>
-                <Stack spacing={3} mt={4}>
-                  {categories.map((category) => (
-                    <Box key={category.key} rounded="md" bg="white" p={3} border="1px solid" borderColor="black">
-                      <Text fontSize="xs" letterSpacing="widest" color="black">
-                        {category.title}
-                      </Text>
-                      <Text fontSize="sm" fontWeight="bold" color="black">
-                        {selected[category.key] || 'Pick one'}
-                      </Text>
-                    </Box>
-                  ))}
-                </Stack>
-              </Box>
-            </Stack>
-          </Grid>
-
-          <Box rounded="md" bg="yellow" p={{ base: 5, md: 8 }} border="1px solid" borderColor="black">
-            <Flex align="center" justify="space-between" wrap="wrap" gap={4}>
-              <Text fontSize="sm" fontWeight="bold" letterSpacing="widest" color="blue">
-                Story
-              </Text>
-              <Box rounded="md" bg="white" px={3} py={1} fontSize="xs" fontWeight="bold" color="black" border="1px solid" borderColor="black">
-                Read aloud
-              </Box>
-            </Flex>
-            <Box rounded="md" bg="white" p={6} mt={4} border="1px solid" borderColor="black">
-              <Text fontSize={{ base: 'md', md: 'lg' }} lineHeight="tall" color="black">
+              <Text fontSize="sm" mt={3} color="white">
                 {story}
               </Text>
             </Box>
-            <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3} mt={6}>
+          )}
+
+          <Flex gap={3} flexWrap="wrap">
+            <Button
+              onClick={handleBack}
+              isDisabled={currentStep === 0}
+              borderRadius="2xl"
+              bg="gray.800"
+              color="white"
+              border="2px solid"
+              borderColor="gray.700"
+            >
+              Back
+            </Button>
+            {currentStep === categories.length - 1 && (
               <Button
                 onClick={handleListen}
-                borderRadius="md"
-                bg="orange"
+                isDisabled={!isSelected || ttsState === 'speaking'}
+                borderRadius="2xl"
+                bg="gray.800"
                 color="white"
-                _hover={{ opacity: 0.9 }}
+                border="2px solid"
+                borderColor="gray.700"
               >
-                {ttsState === 'speaking' ? 'Speaking...' : 'Listen'}
+                {ttsState === 'speaking' ? 'Listening...' : 'Hear spell'}
               </Button>
-              <Button
-                onClick={handleRegenerate}
-                borderRadius="md"
-                border="1px solid"
-                borderColor="black"
-                color="black"
-                bg="orange"
-                _hover={{ bg: 'yellow' }}
-              >
-                New story
-              </Button>
-            </SimpleGrid>
-          </Box>
+            )}
+            <Button
+              onClick={currentStep === categories.length - 1 ? handleCast : handleNext}
+              isDisabled={!isSelected}
+              flex={1}
+              borderRadius="2xl"
+              bg="orange.300"
+              color="black"
+              border="2px solid"
+              borderColor="orange.300"
+            >
+              {currentStep === categories.length - 1 ? 'Cast the spell' : 'Next'}
+            </Button>
+          </Flex>
         </Stack>
       </Container>
     </Box>

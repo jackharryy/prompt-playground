@@ -1,5 +1,26 @@
 :root {
-  color-scheme: light;
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  min-height: 100vh;
+  background-color: #040714;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.9) 1px, transparent 0),
+    radial-gradient(circle at 80% 15%, rgba(255,255,255,0.8) 1px, transparent 0),
+    radial-gradient(circle at 40% 40%, rgba(255,255,255,0.75) 1px, transparent 0),
+    radial-gradient(circle at 60% 70%, rgba(255,255,255,0.9) 1px, transparent 0),
+    radial-gradient(circle at 85% 55%, rgba(255,255,255,0.7) 1px, transparent 0),
+    radial-gradient(circle at 15% 80%, rgba(255,255,255,0.8) 1px, transparent 0),
+    radial-gradient(circle at 50% 40%, rgba(88, 142, 232, 0.15), transparent 15%),
+    radial-gradient(circle at 75% 30%, rgba(203, 180, 255, 0.12), transparent 20%),
+    radial-gradient(circle at 30% 70%, rgba(86, 145, 108, 0.12), transparent 18%),
+    linear-gradient(180deg, #08113b 0%, #040714 45%, #02040b 100%);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
 }
 
 html {
@@ -8,9 +29,8 @@ html {
 
 body {
   margin: 0;
-  min-height: 100vh;
   font-family: Inter, system-ui, sans-serif;
-  background: yellow;
+  color: white;
 }
 
 * {
