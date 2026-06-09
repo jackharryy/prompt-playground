@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "proxy:dev": "npm --prefix ../proxy run dev",
+    "proxy:start": "npm --prefix ../proxy start",
+    "dev:all": "npm run proxy:dev & npm run dev"
   },
   "dependencies": {
     "framer-motion": "^12.40.0",

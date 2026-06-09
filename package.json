@@ -1,0 +1,17 @@
+{
+  "name": "prompt-playground",
+  "private": true,
+  "scripts": {
+    "proxy:dev": "npm --prefix proxy run dev",
+    "proxy:start": "npm --prefix proxy start",
+    "frontend:dev": "npm --prefix frontend run dev",
+    "frontend:build": "npm --prefix frontend run build",
+    "dev:all": "concurrently \"npm:proxy:dev\" \"npm:frontend:dev\"",
+    "start:all": "concurrently \"npm:proxy:start\" \"npm:frontend:build\"",
+    "dev": "node scripts/dev.js"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
+

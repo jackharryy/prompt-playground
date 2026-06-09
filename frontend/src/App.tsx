@@ -6,6 +6,7 @@ import { SpellHeader } from './components/SpellHeader'
 import { StepCards } from './components/StepCards'
 import { OptionGrid } from './components/OptionGrid'
 import { SpellPreview } from './components/SpellPreview'
+import { AiConsole } from './components/AiConsole'
 
 const App = () => {
   const [currentStep, setCurrentStep] = useState(0)
@@ -89,7 +90,13 @@ const App = () => {
 
         <SpellPreview story={story} visible={currentStep === categories.length - 1} />
 
-        <motion.div 
+        {currentStep === categories.length - 1 && (
+          <div>
+            <AiConsole systemPrompt={story} />
+          </div>
+        )}
+
+                <motion.div 
           className="flex gap-3 flex-wrap"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
