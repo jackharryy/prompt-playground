@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { motion } from 'framer-motion'
 import { useSpeech } from './hooks/useSpeech'
 import { categories, buildStepCards, getStepLabel, SelectedState, storyTemplates } from './data/story'
 import { SpellHeader } from './components/SpellHeader'
@@ -59,25 +60,41 @@ const App = () => {
   const currentStepLabel = getStepLabel(currentStep)
 
   return (
-    <div className="min-h-screen py-8 px-4 md:px-6">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <motion.div 
+      className="min-h-screen py-8 px-4 md:px-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div className="max-w-5xl mx-auto space-y-6">
         <SpellHeader />
         <StepCards cards={stepCards} />
 
-        <div className="bg-gray-900 border-2 border-gray-700 rounded-3xl p-5 md:p-6">
-          <p className="text-xs font-bold text-yellow-300 tracking-widest">
+        <motion.div 
+          className=""
+          key={currentStep}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <p className="text-xs font-bold text-blue-300 tracking-widest uppercase">
             {currentStepLabel}
           </p>
-          <p className="text-lg mt-3 text-white">
+          {/* <p className="text-lg mt-3 text-white">
             {currentCategory.subtitle}
-          </p>
+          </p> */}
 
-          <OptionGrid category={currentCategory} selected={selected} onSelect={handleSelect} />
-        </div>
+          <OptionGrid category={currentCategory} selected={selected} onSelect={handleSelect} currentStep={currentStep} />
+        </motion.div>
 
         <SpellPreview story={story} visible={currentStep === categories.length - 1} />
 
-        <div className="flex gap-3 flex-wrap">
+        <motion.div 
+          className="flex gap-3 flex-wrap"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
           <button
             onClick={handleBack}
             disabled={currentStep === 0}
@@ -97,13 +114,13 @@ const App = () => {
           <button
             onClick={currentStep === categories.length - 1 ? handleCast : handleNext}
             disabled={!isSelected}
-            className="flex-1 px-6 py-3 rounded-2xl bg-orange-300 text-black border-2 border-orange-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-400"
+            className="flex-1 px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600"
           >
             {currentStep === categories.length - 1 ? 'New spell' : 'Next'}
           </button>
-        </div>
-      </div>
-    </div>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   )
 }
 
