@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { Box, Button, Container, Flex, Stack, Text } from '@chakra-ui/react'
 import { useSpeech } from './hooks/useSpeech'
 import { categories, buildStepCards, getStepLabel, SelectedState, storyTemplates } from './data/story'
 import { SpellHeader } from './components/SpellHeader'
@@ -60,66 +59,51 @@ const App = () => {
   const currentStepLabel = getStepLabel(currentStep)
 
   return (
-    <Box minH="100vh" bg="gray.950" py={8} px={{ base: 4, md: 6 }}>
-      <Container maxW="5xl">
-        <Stack spacing={6}>
-          <SpellHeader />
-          <StepCards cards={stepCards} />
+    <div className="min-h-screen py-8 px-4 md:px-6">
+      <div className="max-w-5xl mx-auto space-y-6">
+        <SpellHeader />
+        <StepCards cards={stepCards} />
 
-          <Box bg="gray.900" border="2px solid" borderColor="gray.700" rounded="3xl" p={{ base: 5, md: 6 }}>
-            <Text fontSize="xs" fontWeight="bold" color="yellow.300" letterSpacing="widest">
-              {currentStepLabel}
-            </Text>
-            <Text fontSize="lg" mt={3} color="white">
-              {currentCategory.subtitle}
-            </Text>
+        <div className="bg-gray-900 border-2 border-gray-700 rounded-3xl p-5 md:p-6">
+          <p className="text-xs font-bold text-yellow-300 tracking-widest">
+            {currentStepLabel}
+          </p>
+          <p className="text-lg mt-3 text-white">
+            {currentCategory.subtitle}
+          </p>
 
-            <OptionGrid category={currentCategory} selected={selected} onSelect={handleSelect} />
-          </Box>
+          <OptionGrid category={currentCategory} selected={selected} onSelect={handleSelect} />
+        </div>
 
-          <SpellPreview story={story} visible={currentStep === categories.length - 1} />
+        <SpellPreview story={story} visible={currentStep === categories.length - 1} />
 
-          <Flex gap={3} flexWrap="wrap">
-            <Button
-              onClick={handleBack}
-              isDisabled={currentStep === 0}
-              borderRadius="2xl"
-              bg="gray.800"
-              color="white"
-              border="2px solid"
-              borderColor="gray.700"
+        <div className="flex gap-3 flex-wrap">
+          <button
+            onClick={handleBack}
+            disabled={currentStep === 0}
+            className="px-6 py-3 rounded-2xl bg-gray-800 text-white border-2 border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700"
+          >
+            Back
+          </button>
+          {currentStep === categories.length - 1 && (
+            <button
+              onClick={handleListen}
+              disabled={!isSelected}
+              className="px-6 py-3 rounded-2xl bg-gray-800 text-white border-2 border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700"
             >
-              Back
-            </Button>
-            {currentStep === categories.length - 1 && (
-              <Button
-                onClick={handleListen}
-                isDisabled={!isSelected}
-                borderRadius="2xl"
-                bg="gray.800"
-                color="white"
-                border="2px solid"
-                borderColor="gray.700"
-              >
-                {ttsState === 'speaking' ? 'Listening...' : 'Hear spell'}
-              </Button>
-            )}
-            <Button
-              onClick={currentStep === categories.length - 1 ? handleCast : handleNext}
-              isDisabled={!isSelected}
-              flex={1}
-              borderRadius="2xl"
-              bg="orange.300"
-              color="black"
-              border="2px solid"
-              borderColor="orange.300"
-            >
-              {currentStep === categories.length - 1 ? 'New spell' : 'Next'}
-            </Button>
-          </Flex>
-        </Stack>
-      </Container>
-    </Box>
+              {ttsState === 'speaking' ? 'Listening...' : 'Hear spell'}
+            </button>
+          )}
+          <button
+            onClick={currentStep === categories.length - 1 ? handleCast : handleNext}
+            disabled={!isSelected}
+            className="flex-1 px-6 py-3 rounded-2xl bg-orange-300 text-black border-2 border-orange-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-400"
+          >
+            {currentStep === categories.length - 1 ? 'New spell' : 'Next'}
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 

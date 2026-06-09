@@ -1,4 +1,3 @@
-import { Box, SimpleGrid, Text } from '@chakra-ui/react'
 import type { StepCardItem } from '../data/story'
 
 interface StepCardsProps {
@@ -6,31 +5,31 @@ interface StepCardsProps {
 }
 
 export const StepCards = ({ cards }: StepCardsProps) => (
-  <SimpleGrid columns={{ base: 1, md: 4 }} gap={4}>
+  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
     {cards.map((card) => (
-      <Box
+      <div
         key={card.key}
-        bg={card.active ? 'orange.300' : card.unlocked ? 'gray.800' : 'gray.700'}
-        color={card.active ? 'black' : 'white'}
-        border="2px solid"
-        borderColor={card.active ? 'orange.300' : 'gray.600'}
-        rounded="3xl"
-        p={5}
-        textAlign="center"
+        className={`border-2 rounded-3xl p-5 text-center ${
+          card.active
+            ? 'bg-orange-300 text-black border-orange-300'
+            : card.unlocked
+              ? 'bg-gray-800 text-white border-gray-600'
+              : 'bg-gray-700 text-white border-gray-600'
+        }`}
       >
-        <Text fontSize="3xl">{card.icon}</Text>
-        <Text fontSize="xs" fontWeight="bold" letterSpacing="widest" mt={3}>
+        <p className="text-3xl">{card.icon}</p>
+        <p className="text-xs font-bold tracking-widest mt-3">
           {card.label}
-        </Text>
-        <Text fontSize="sm" mt={2} fontWeight="bold">
+        </p>
+        <p className="text-sm mt-2 font-bold">
           {card.value}
-        </Text>
+        </p>
         {!card.unlocked && (
-          <Text fontSize="xs" mt={2} color="gray.400">
+          <p className="text-xs mt-2 text-gray-400">
             locked
-          </Text>
+          </p>
         )}
-      </Box>
+      </div>
     ))}
-  </SimpleGrid>
+  </div>
 )
