@@ -4,15 +4,25 @@ import {
   Button,
   Container,
   Flex,
-  Grid,
   Heading,
   SimpleGrid,
   Stack,
   Text,
-  VStack,
 } from '@chakra-ui/react'
+import { useSpeech } from './useSpeech'
 
-const categories = [
+type CategoryKey = 'character' | 'action' | 'topic' | 'style'
+
+type Category = {
+  key: CategoryKey
+  title: string
+  subtitle: string
+  options: string[]
+}
+
+type SelectedState = Record<CategoryKey, string>
+
+const categories: Category[] = [
   {
     key: 'character',
     title: 'Hero',
@@ -39,28 +49,28 @@ const categories = [
   },
 ]
 
-const categoryColors = {
+const categoryColors: Record<CategoryKey, [string, string]> = {
   character: ['#f9a8d4', '#a78bfa'],
   action: ['#fb923c', '#f97316'],
   topic: ['#38bdf8', '#0ea5e9'],
   style: ['#86efac', '#4ade80'],
 }
 
-const categoryIcons = {
+const categoryIcons: Record<CategoryKey, string> = {
   character: '🧚',
   action: '🎯',
   topic: '🌎',
   style: '✨',
 }
 
-const optionEmojis = {
+const optionEmojis: Record<CategoryKey, string[]> = {
   character: ['🚀', '🐉', '🕵️', '🦄'],
   action: ['🗺️', '🕵️‍♂️', '🤝', '🪐'],
   topic: ['🏫', '🌴', '🏰', '🔬'],
   style: ['✨', '🦸', '🤪', '💖'],
 }
 
-const storyTemplates = [
+const storyTemplates: Array<(selected: SelectedState) => string> = [
   ({ character, action, topic, style }) =>
     `Once upon a time in ${topic}, a ${style} ${character} decided to ${action}. It was a magical adventure!`,
   ({ character, action, topic, style }) =>
@@ -71,14 +81,13 @@ const storyTemplates = [
 
 const App = () => {
   const [currentStep, setCurrentStep] = useState(0)
-  const [selected, setSelected] = useState({
+  const [selected, setSelected] = useState<SelectedState>({
     character: '',
     action: '',
     topic: '',
     style: '',
   })
   const [regenerateSeed, setRegenerateSeed] = useState(0)
-  const [ttsState, setTtsState] = useState('ready')
 
   const currentCategory = categories[currentStep]
   const isSelected = Boolean(selected[currentCategory.key])
@@ -92,7 +101,7 @@ const App = () => {
     return template(selected)
   }, [selected, regenerateSeed])
 
-  const handleSelect = (key, item) => {
+  const handleSelect = (key: CategoryKey, item: string) => {
     setSelected((prev) => ({ ...prev, [key]: item }))
   }
 
@@ -112,20 +121,15 @@ const App = () => {
     setRegenerateSeed((seed) => seed + 1)
   }
 
+  const { ttsState, speak } = useSpeech()
+
   const handleListen = () => {
-    if (!window.speechSynthesis) return
-    const utterance = new SpeechSynthesisUtterance(story)
-    utterance.rate = 1
-    utterance.pitch = 1.1
-    setTtsState('speaking')
-    utterance.onend = () => setTtsState('ready')
-    speechSynthesis.cancel()
-    speechSynthesis.speak(utterance)
+    speak(story)
   }
 
   const stepCards = [
     {
-      key: 'character',
+      key: 'character' as const,
       label: 'WHO',
       icon: '🧙',
       value: selected.character || 'a hero',
@@ -133,7 +137,7 @@ const App = () => {
       active: currentStep === 0,
     },
     {
-      key: 'action',
+      key: 'action' as const,
       label: 'DOES WHAT',
       icon: '🎯',
       value: selected.action || 'an action',
@@ -141,7 +145,7 @@ const App = () => {
       active: currentStep === 1,
     },
     {
-      key: 'topic',
+      key: 'topic' as const,
       label: 'WHERE',
       icon: '🌌',
       value: selected.topic || 'a world',
@@ -149,7 +153,7 @@ const App = () => {
       active: currentStep === 2,
     },
     {
-      key: 'style',
+      key: 'style' as const,
       label: 'HOW',
       icon: '✨',
       value: selected.style || 'a style',
@@ -280,7 +284,7 @@ const App = () => {
             {currentStep === categories.length - 1 && (
               <Button
                 onClick={handleListen}
-                isDisabled={!isSelected || ttsState === 'speaking'}
+                isDisabled={!isSelected}
                 borderRadius="2xl"
                 bg="gray.800"
                 color="white"
