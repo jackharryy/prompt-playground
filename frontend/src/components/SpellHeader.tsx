@@ -1,13 +1,32 @@
+import { motion } from 'framer-motion'
+
 export const SpellHeader = () => (
-  <div className="bg-gray-900 border-2 border-gray-700 rounded-3xl p-5 md:p-8">
-    <p className="text-xs font-bold text-yellow-300 tracking-widest">
-      SPELL CRAFTER
-    </p>
-    <h1 className="text-4xl mt-3 text-white font-bold">
-      Build a simple spell
-    </h1>
-    <p className="text-sm mt-2 text-gray-400">
-      Tap the current step, choose one option, then cast the spell.
-    </p>
-  </div>
+  <motion.div 
+    className="p-5 flex flex-col justify-center items-center"
+    initial={{ opacity: 0, y: -20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.6 }}
+  >
+    <motion.p 
+      className="text-3xl font-semibold text-yellow-300"
+      animate={{ 
+        y: [0, -8, 0],
+      }}
+      transition={{
+        duration: 3,
+        repeat: Infinity,
+        ease: 'easeInOut'
+      }}
+    >
+      🔮 Spell Crafter
+    </motion.p>
+    <motion.p 
+      className="text-sm mt-2 text-gray-400"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6, delay: 0.2 }}
+    >
+      Mix ingredients to summon an AI spell
+    </motion.p>
+  </motion.div>
 )

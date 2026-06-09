@@ -20,19 +20,19 @@ export const categories: Category[] = [
     key: 'action',
     title: 'Action',
     subtitle: 'Pick what to do',
-    options: ['find a hidden treasure', 'solve a secret mystery', 'help a friend', 'explore a new planet'],
+    options: ['Find a hidden treasure', 'Solve a secret mystery', 'Help a friend', 'Explore a new planet'],
   },
   {
     key: 'topic',
     title: 'World',
     subtitle: 'Pick a place',
-    options: ['space school', 'jungle world', 'fantasy kingdom', 'science fair'],
+    options: ['Space school', 'Jungle world', 'Fantasy kingdom', 'Science fair'],
   },
   {
     key: 'style',
     title: 'Style',
     subtitle: 'Pick a look',
-    options: ['sparkly', 'brave and bold', 'silly and funny', 'peaceful and kind'],
+    options: ['Sparkly', 'Brave and bold', 'Silly and funny', 'Peaceful and kind'],
   },
 ]
 
