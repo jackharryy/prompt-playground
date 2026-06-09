@@ -1,83 +1,11 @@
 import { useMemo, useState } from 'react'
-import {
-  Box,
-  Button,
-  Container,
-  Flex,
-  Heading,
-  SimpleGrid,
-  Stack,
-  Text,
-} from '@chakra-ui/react'
-import { useSpeech } from './useSpeech'
-
-type CategoryKey = 'character' | 'action' | 'topic' | 'style'
-
-type Category = {
-  key: CategoryKey
-  title: string
-  subtitle: string
-  options: string[]
-}
-
-type SelectedState = Record<CategoryKey, string>
-
-const categories: Category[] = [
-  {
-    key: 'character',
-    title: 'Hero',
-    subtitle: 'Pick a hero',
-    options: ['Brave astronaut', 'Friendly dragon', 'Curious detective', 'Magic unicorn'],
-  },
-  {
-    key: 'action',
-    title: 'Action',
-    subtitle: 'Pick what to do',
-    options: ['find a hidden treasure', 'solve a secret mystery', 'help a friend', 'explore a new planet'],
-  },
-  {
-    key: 'topic',
-    title: 'World',
-    subtitle: 'Pick a place',
-    options: ['space school', 'jungle world', 'fantasy kingdom', 'science fair'],
-  },
-  {
-    key: 'style',
-    title: 'Style',
-    subtitle: 'Pick a look',
-    options: ['sparkly', 'brave and bold', 'silly and funny', 'peaceful and kind'],
-  },
-]
-
-const categoryColors: Record<CategoryKey, [string, string]> = {
-  character: ['#f9a8d4', '#a78bfa'],
-  action: ['#fb923c', '#f97316'],
-  topic: ['#38bdf8', '#0ea5e9'],
-  style: ['#86efac', '#4ade80'],
-}
-
-const categoryIcons: Record<CategoryKey, string> = {
-  character: '🧚',
-  action: '🎯',
-  topic: '🌎',
-  style: '✨',
-}
-
-const optionEmojis: Record<CategoryKey, string[]> = {
-  character: ['🚀', '🐉', '🕵️', '🦄'],
-  action: ['🗺️', '🕵️‍♂️', '🤝', '🪐'],
-  topic: ['🏫', '🌴', '🏰', '🔬'],
-  style: ['✨', '🦸', '🤪', '💖'],
-}
-
-const storyTemplates: Array<(selected: SelectedState) => string> = [
-  ({ character, action, topic, style }) =>
-    `Once upon a time in ${topic}, a ${style} ${character} decided to ${action}. It was a magical adventure!`,
-  ({ character, action, topic, style }) =>
-    `In ${topic}, a ${style} ${character} got ready to ${action}. It felt like a fun surprise!`,
-  ({ character, action, topic, style }) =>
-    `A ${style} ${character} woke up in ${topic} and wanted to ${action}. Everyone smiled!`,
-]
+import { Box, Button, Container, Flex, Stack, Text } from '@chakra-ui/react'
+import { useSpeech } from './hooks/useSpeech'
+import { categories, buildStepCards, getStepLabel, SelectedState, storyTemplates } from './data/story'
+import { SpellHeader } from './components/SpellHeader'
+import { StepCards } from './components/StepCards'
+import { OptionGrid } from './components/OptionGrid'
+import { SpellPreview } from './components/SpellPreview'
 
 const App = () => {
   const [currentStep, setCurrentStep] = useState(0)
@@ -97,11 +25,12 @@ const App = () => {
     if (!filled) {
       return 'Pick one block for each card. Then listen or make a new story.'
     }
+
     const template = storyTemplates[regenerateSeed % storyTemplates.length]
     return template(selected)
   }, [selected, regenerateSeed])
 
-  const handleSelect = (key: CategoryKey, item: string) => {
+  const handleSelect = (key: keyof SelectedState, item: string) => {
     setSelected((prev) => ({ ...prev, [key]: item }))
   }
 
@@ -127,93 +56,15 @@ const App = () => {
     speak(story)
   }
 
-  const stepCards = [
-    {
-      key: 'character' as const,
-      label: 'WHO',
-      icon: '🧙',
-      value: selected.character || 'a hero',
-      unlocked: true,
-      active: currentStep === 0,
-    },
-    {
-      key: 'action' as const,
-      label: 'DOES WHAT',
-      icon: '🎯',
-      value: selected.action || 'an action',
-      unlocked: Boolean(selected.character),
-      active: currentStep === 1,
-    },
-    {
-      key: 'topic' as const,
-      label: 'WHERE',
-      icon: '🌌',
-      value: selected.topic || 'a world',
-      unlocked: Boolean(selected.action),
-      active: currentStep === 2,
-    },
-    {
-      key: 'style' as const,
-      label: 'HOW',
-      icon: '✨',
-      value: selected.style || 'a style',
-      unlocked: Boolean(selected.topic),
-      active: currentStep === 3,
-    },
-  ]
-
-  const currentStepLabel =
-    currentStep === 0
-      ? 'Choose your hero'
-      : currentStep === 1
-      ? 'Choose the action'
-      : currentStep === 2
-      ? 'Choose the world'
-      : 'Choose the style'
+  const stepCards = buildStepCards(selected, currentStep)
+  const currentStepLabel = getStepLabel(currentStep)
 
   return (
     <Box minH="100vh" bg="gray.950" py={8} px={{ base: 4, md: 6 }}>
       <Container maxW="5xl">
         <Stack spacing={6}>
-          <Box bg="gray.900" border="2px solid" borderColor="gray.700" rounded="3xl" p={{ base: 5, md: 8 }}>
-            <Text fontSize="xs" fontWeight="bold" color="yellow.300" letterSpacing="widest">
-              SPELL CRAFTER
-            </Text>
-            <Heading size="2xl" mt={3} color="white">
-              Build a simple spell
-            </Heading>
-            <Text fontSize="sm" mt={2} color="gray.400">
-              Tap the current step, choose one option, then cast the spell.
-            </Text>
-          </Box>
-
-          <SimpleGrid columns={{ base: 1, md: 4 }} gap={4}>
-            {stepCards.map((card) => (
-              <Box
-                key={card.key}
-                bg={card.active ? 'orange.300' : card.unlocked ? 'gray.800' : 'gray.700'}
-                color={card.active ? 'black' : 'white'}
-                border="2px solid"
-                borderColor={card.active ? 'orange.300' : 'gray.600'}
-                rounded="3xl"
-                p={5}
-                textAlign="center"
-              >
-                <Text fontSize="3xl">{card.icon}</Text>
-                <Text fontSize="xs" fontWeight="bold" letterSpacing="widest" mt={3}>
-                  {card.label}
-                </Text>
-                <Text fontSize="sm" mt={2} fontWeight="bold">
-                  {card.value}
-                </Text>
-                {!card.unlocked && (
-                  <Text fontSize="xs" mt={2} color="gray.400">
-                    locked
-                  </Text>
-                )}
-              </Box>
-            ))}
-          </SimpleGrid>
+          <SpellHeader />
+          <StepCards cards={stepCards} />
 
           <Box bg="gray.900" border="2px solid" borderColor="gray.700" rounded="3xl" p={{ base: 5, md: 6 }}>
             <Text fontSize="xs" fontWeight="bold" color="yellow.300" letterSpacing="widest">
@@ -223,51 +74,10 @@ const App = () => {
               {currentCategory.subtitle}
             </Text>
 
-            <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3} mt={5}>
-              {currentCategory.options.map((option, index) => {
-                const active = selected[currentCategory.key] === option
-                const emoji = optionEmojis[currentCategory.key]?.[index] || '⭐'
-                return (
-                  <Button
-                    key={option}
-                    onClick={() => handleSelect(currentCategory.key, option)}
-                    h="auto"
-                    p={5}
-                    textAlign="left"
-                    borderRadius="2xl"
-                    bg={active ? 'orange.300' : 'gray.800'}
-                    color={active ? 'black' : 'white'}
-                    border="2px solid"
-                    borderColor={active ? 'orange.300' : 'gray.700'}
-                    _hover={{ bg: active ? 'orange.300' : 'gray.700' }}
-                  >
-                    <Flex align="center" gap={4}>
-                      <Text fontSize="3xl">{emoji}</Text>
-                      <Box>
-                        <Text fontSize="md" fontWeight="bold">
-                          {option}
-                        </Text>
-                        <Text fontSize="xs" color={active ? 'black' : 'gray.300'}>
-                          {active ? 'Selected' : 'Tap to choose'}
-                        </Text>
-                      </Box>
-                    </Flex>
-                  </Button>
-                )
-              })}
-            </SimpleGrid>
+            <OptionGrid category={currentCategory} selected={selected} onSelect={handleSelect} />
           </Box>
 
-          {currentStep === categories.length - 1 && (
-            <Box bg="gray.800" border="2px solid" borderColor="gray.700" rounded="3xl" p={5}>
-              <Text fontSize="xs" fontWeight="bold" color="yellow.300" letterSpacing="widest">
-                SPELL READY
-              </Text>
-              <Text fontSize="sm" mt={3} color="white">
-                {story}
-              </Text>
-            </Box>
-          )}
+          <SpellPreview story={story} visible={currentStep === categories.length - 1} />
 
           <Flex gap={3} flexWrap="wrap">
             <Button
@@ -304,7 +114,7 @@ const App = () => {
               border="2px solid"
               borderColor="orange.300"
             >
-              {currentStep === categories.length - 1 ? 'Cast the spell' : 'Next'}
+              {currentStep === categories.length - 1 ? 'New spell' : 'Next'}
             </Button>
           </Flex>
         </Stack>
