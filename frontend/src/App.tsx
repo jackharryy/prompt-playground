@@ -5,6 +5,7 @@ import { SpellHeader } from './components/SpellHeader'
 import { StepCards } from './components/StepCards'
 import { OptionGrid } from './components/OptionGrid'
 import { SpellPreview } from './components/SpellPreview'
+import { AiConsole } from './components/AiConsole'
 
 const App = () => {
   const [currentStep, setCurrentStep] = useState(0)
@@ -76,6 +77,12 @@ const App = () => {
         </div>
 
         <SpellPreview story={story} visible={currentStep === categories.length - 1} />
+
+        {currentStep === categories.length - 1 && (
+          <div>
+            <AiConsole systemPrompt={story} />
+          </div>
+        )}
 
         <div className="flex gap-3 flex-wrap">
           <button
