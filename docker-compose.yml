@@ -1,0 +1,33 @@
+services:
+  frontend:
+    image: node:20-alpine
+    working_dir: /app/frontend
+    command: sh -c "npm install --no-package-lock && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_OPENROUTER_PROXY: http://localhost:8787/openrouter
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - .:/app
+      - frontend_node_modules:/app/frontend/node_modules
+    depends_on:
+      - proxy
+
+  proxy:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm --prefix proxy install --no-package-lock && ./proxy/node_modules/.bin/nodemon --legacy-watch proxy/index.js"
+    ports:
+      - "8787:8787"
+    env_file:
+      - ./proxy/.env
+    environment:
+      PORT: "8787"
+    volumes:
+      - .:/app
+      - proxy_node_modules:/app/proxy/node_modules
+
+volumes:
+  frontend_node_modules:
+  proxy_node_modules:

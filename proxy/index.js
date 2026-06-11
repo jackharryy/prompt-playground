@@ -7,7 +7,9 @@ import fetch from 'node-fetch'
 import fs from 'fs'
 import path from 'path'
 
-dotenv.config()
+const rootEnvPath = path.join(process.cwd(), 'proxy', '.env')
+const localEnvPath = path.join(process.cwd(), '.env')
+dotenv.config({ path: fs.existsSync(rootEnvPath) ? rootEnvPath : localEnvPath })
 
 const app = express()
 app.use(cors())
