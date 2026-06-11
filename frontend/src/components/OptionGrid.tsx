@@ -9,6 +9,7 @@ interface OptionGridProps {
   currentStep: number
   loading?: boolean
   error?: string
+  emojis?: string[]
 }
 
 const getCategoryColor = (categoryKey: CategoryKey): { bg: string; border: string; text: string } => {
@@ -45,7 +46,7 @@ const itemVariants = {
 
 const categories = ['character', 'action', 'topic', 'style'] as const
 
-export const OptionGrid = ({ category, selected, onSelect, currentStep, loading, error }: OptionGridProps) => {
+export const OptionGrid = ({ category, selected, onSelect, currentStep, loading, error, emojis }: OptionGridProps) => {
   const categoryIndex = categories.indexOf(category.key as typeof categories[number])
   const isPassed = categoryIndex < currentStep
   const colors = getCategoryColor(category.key)
@@ -64,7 +65,7 @@ export const OptionGrid = ({ category, selected, onSelect, currentStep, loading,
       )}
       {(loading ? Array.from({ length: 4 }) : category.options).map((option, index) => {
         const active = !loading && selected[category.key] === option
-        const emoji = optionEmojis[category.key]?.[index] || '⭐'
+        const emoji = (emojis && emojis[index]) || optionEmojis[category.key]?.[index] || '⭐'
         const isSkeleton = loading
         
         const bgColorMap: Record<CategoryKey, string> = {

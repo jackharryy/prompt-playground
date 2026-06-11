@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useSpeech } from './hooks/useSpeech'
-import { categories, buildStepCards, getStepLabel, SelectedState, storyTemplates, type CategoryKey } from './data/story'
+import { categories, buildStepCards, getStepLabel, SelectedState, storyTemplates, type CategoryKey, optionEmojis } from './data/story'
 import { generateStageOptions } from './ai/stageGenerator'
+import { generateEmojisForOptions } from './ai/emojiGenerator'
 import { SpellHeader } from './components/SpellHeader'
 import { StepCards } from './components/StepCards'
 import { OptionGrid } from './components/OptionGrid'
@@ -11,6 +12,11 @@ import { AiConsole } from './components/AiConsole'
 
 const defaultStageOptions = categories.reduce((acc, category) => {
   acc[category.key] = category.options
+  return acc
+}, {} as Record<CategoryKey, string[]>)
+
+const defaultStageEmojis = categories.reduce((acc, category) => {
+  acc[category.key] = optionEmojis[category.key] || category.options.map(() => '⭐')
   return acc
 }, {} as Record<CategoryKey, string[]>)
 
@@ -30,6 +36,7 @@ const App = () => {
     style: '',
   })
   const [stageOptions, setStageOptions] = useState<Record<CategoryKey, string[]>>(defaultStageOptions)
+  const [stageEmojis, setStageEmojis] = useState<Record<CategoryKey, string[]>>(defaultStageEmojis)
   const [generatedStages, setGeneratedStages] = useState<Record<CategoryKey, boolean>>(initialGeneratedState)
   const [loadingStages, setLoadingStages] = useState<Record<CategoryKey, boolean>>({
     character: false,
@@ -75,6 +82,13 @@ const App = () => {
     try {
       const options = await generateStageOptions(stage, selected)
       setStageOptions((prev) => ({ ...prev, [stage]: options }))
+      // generate matching emojis
+      try {
+        const emojis = await generateEmojisForOptions(options)
+        setStageEmojis((prev) => ({ ...prev, [stage]: emojis }))
+      } catch {
+        // keep defaults
+      }
       setGeneratedStages((prev) => ({ ...prev, [stage]: true }))
     } catch (error) {
       setOptionError('Sorry, I could not generate choices right now. Please try again.')
@@ -119,6 +133,12 @@ const App = () => {
       ...(stage === 'character' ? { action: false, topic: false, style: false } : {}),
       ...(stage === 'action' ? { topic: false, style: false } : {}),
       ...(stage === 'topic' ? { style: false } : {}),
+    }))
+    setStageEmojis((prev) => ({
+      ...prev,
+      ...(stage === 'character' ? { action: defaultStageEmojis.action, topic: defaultStageEmojis.topic, style: defaultStageEmojis.style } : {}),
+      ...(stage === 'action' ? { topic: defaultStageEmojis.topic, style: defaultStageEmojis.style } : {}),
+      ...(stage === 'topic' ? { style: defaultStageEmojis.style } : {}),
     }))
   }
 
@@ -200,6 +220,7 @@ const App = () => {
             currentStep={currentStep}
             loading={loadingStages[currentCategory.key]}
             error={optionError}
+            emojis={stageEmojis[currentCategory.key]}
           />
         </motion.div>
 
