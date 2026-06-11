@@ -1,12 +1,25 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useSpeech } from './hooks/useSpeech'
-import { categories, buildStepCards, getStepLabel, SelectedState, storyTemplates } from './data/story'
+import { categories, buildStepCards, getStepLabel, SelectedState, storyTemplates, type CategoryKey } from './data/story'
+import { generateStageOptions } from './ai/stageGenerator'
 import { SpellHeader } from './components/SpellHeader'
 import { StepCards } from './components/StepCards'
 import { OptionGrid } from './components/OptionGrid'
 import { SpellPreview } from './components/SpellPreview'
 import { AiConsole } from './components/AiConsole'
+
+const defaultStageOptions = categories.reduce((acc, category) => {
+  acc[category.key] = category.options
+  return acc
+}, {} as Record<CategoryKey, string[]>)
+
+const initialGeneratedState: Record<CategoryKey, boolean> = {
+  character: false,
+  action: false,
+  topic: false,
+  style: false,
+}
 
 const App = () => {
   const [currentStep, setCurrentStep] = useState(0)
@@ -16,20 +29,33 @@ const App = () => {
     topic: '',
     style: '',
   })
-  const [regenerateSeed, setRegenerateSeed] = useState(0)
+  const [stageOptions, setStageOptions] = useState<Record<CategoryKey, string[]>>(defaultStageOptions)
+  const [generatedStages, setGeneratedStages] = useState<Record<CategoryKey, boolean>>(initialGeneratedState)
+  const [loadingStages, setLoadingStages] = useState<Record<CategoryKey, boolean>>({
+    character: false,
+    action: false,
+    topic: false,
+    style: false,
+  })
+  const [optionError, setOptionError] = useState<string | null>(null)
 
   const currentCategory = categories[currentStep]
   const isSelected = Boolean(selected[currentCategory.key])
 
+  const currentCategoryWithOptions = {
+    ...currentCategory,
+    options: stageOptions[currentCategory.key] || currentCategory.options,
+  }
+
   const story = useMemo(() => {
     const filled = categories.every((category) => selected[category.key])
     if (!filled) {
-      return 'Pick one block for each card. Then listen or make a new story.'
+      return 'Pick one block for each card. Then listen or make a new hero.'
     }
 
-    const template = storyTemplates[regenerateSeed % storyTemplates.length]
-    return template(selected)
-  }, [selected, regenerateSeed])
+    const index = (selected.character.length + selected.action.length + selected.topic.length + selected.style.length) % storyTemplates.length
+    return storyTemplates[index](selected)
+  }, [selected])
 
   const systemPrompt = useMemo(() => {
     return (
@@ -43,8 +69,75 @@ const App = () => {
     )
   }, [story])
 
+  const fetchStageOptions = async (stage: CategoryKey) => {
+    setOptionError(null)
+    setLoadingStages((prev) => ({ ...prev, [stage]: true }))
+    try {
+      const options = await generateStageOptions(stage, selected)
+      setStageOptions((prev) => ({ ...prev, [stage]: options }))
+      setGeneratedStages((prev) => ({ ...prev, [stage]: true }))
+    } catch (error) {
+      setOptionError('Sorry, I could not generate choices right now. Please try again.')
+    } finally {
+      setLoadingStages((prev) => ({ ...prev, [stage]: false }))
+    }
+  }
+
+  useEffect(() => {
+    if (!generatedStages.character && !loadingStages.character) {
+      fetchStageOptions('character')
+    }
+  }, [generatedStages.character, loadingStages.character])
+
+  useEffect(() => {
+    if (selected.character && !generatedStages.action && !loadingStages.action) {
+      fetchStageOptions('action')
+    }
+  }, [selected.character, generatedStages.action, loadingStages.action])
+
+  useEffect(() => {
+    if (selected.action && !generatedStages.topic && !loadingStages.topic) {
+      fetchStageOptions('topic')
+    }
+  }, [selected.action, generatedStages.topic, loadingStages.topic])
+
+  useEffect(() => {
+    if (selected.topic && !generatedStages.style && !loadingStages.style) {
+      fetchStageOptions('style')
+    }
+  }, [selected.topic, generatedStages.style, loadingStages.style])
+
+  const clearLaterStages = (stage: CategoryKey) => {
+    setStageOptions((prev) => ({
+      ...prev,
+      ...(stage === 'character' ? { action: defaultStageOptions.action, topic: defaultStageOptions.topic, style: defaultStageOptions.style } : {}),
+      ...(stage === 'action' ? { topic: defaultStageOptions.topic, style: defaultStageOptions.style } : {}),
+      ...(stage === 'topic' ? { style: defaultStageOptions.style } : {}),
+    }))
+    setGeneratedStages((prev) => ({
+      ...prev,
+      ...(stage === 'character' ? { action: false, topic: false, style: false } : {}),
+      ...(stage === 'action' ? { topic: false, style: false } : {}),
+      ...(stage === 'topic' ? { style: false } : {}),
+    }))
+  }
+
   const handleSelect = (key: keyof SelectedState, item: string) => {
-    setSelected((prev) => ({ ...prev, [key]: item }))
+    setSelected((prev) => {
+      const result = { ...prev, [key]: item }
+      if (key === 'character') {
+        result.action = ''
+        result.topic = ''
+        result.style = ''
+      } else if (key === 'action') {
+        result.topic = ''
+        result.style = ''
+      } else if (key === 'topic') {
+        result.style = ''
+      }
+      return result
+    })
+    clearLaterStages(key)
   }
 
   const handleNext = () => {
@@ -60,7 +153,10 @@ const App = () => {
   }
 
   const handleCast = () => {
-    setRegenerateSeed((seed) => seed + 1)
+    setSelected({ character: '', action: '', topic: '', style: '' })
+    setCurrentStep(0)
+    setGeneratedStages(initialGeneratedState)
+    setOptionError(null)
   }
 
   const { ttsState, speak } = useSpeech()
@@ -97,7 +193,14 @@ const App = () => {
             {currentCategory.subtitle}
           </p> */}
 
-          <OptionGrid category={currentCategory} selected={selected} onSelect={handleSelect} currentStep={currentStep} />
+          <OptionGrid
+            category={currentCategoryWithOptions}
+            selected={selected}
+            onSelect={handleSelect}
+            currentStep={currentStep}
+            loading={loadingStages[currentCategory.key]}
+            error={optionError}
+          />
         </motion.div>
 
         <SpellPreview story={story} visible={currentStep === categories.length - 1} />

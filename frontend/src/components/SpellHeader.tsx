@@ -26,7 +26,7 @@ export const SpellHeader = () => (
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6, delay: 0.2 }}
     >
-      Pick the pieces and make your very own AI hero
+      Build your own AI hero with fun choices — no pictures needed, just imagination.
     </motion.p>
   </motion.div>
 )

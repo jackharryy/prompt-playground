@@ -7,6 +7,8 @@ interface OptionGridProps {
   selected: SelectedState
   onSelect: (key: CategoryKey, item: string) => void
   currentStep: number
+  loading?: boolean
+  error?: string
 }
 
 const getCategoryColor = (categoryKey: CategoryKey): { bg: string; border: string; text: string } => {
@@ -43,7 +45,7 @@ const itemVariants = {
 
 const categories = ['character', 'action', 'topic', 'style'] as const
 
-export const OptionGrid = ({ category, selected, onSelect, currentStep }: OptionGridProps) => {
+export const OptionGrid = ({ category, selected, onSelect, currentStep, loading, error }: OptionGridProps) => {
   const categoryIndex = categories.indexOf(category.key as typeof categories[number])
   const isPassed = categoryIndex < currentStep
   const colors = getCategoryColor(category.key)
@@ -55,9 +57,15 @@ export const OptionGrid = ({ category, selected, onSelect, currentStep }: Option
       initial="hidden"
       animate="visible"
     >
-      {category.options.map((option, index) => {
-        const active = selected[category.key] === option
+      {error && (
+        <div className="col-span-full rounded-2xl border-2 border-red-600 bg-red-900/20 p-4 text-sm text-red-200">
+          {error}
+        </div>
+      )}
+      {(loading ? Array.from({ length: 4 }) : category.options).map((option, index) => {
+        const active = !loading && selected[category.key] === option
         const emoji = optionEmojis[category.key]?.[index] || '⭐'
+        const isSkeleton = loading
         
         const bgColorMap: Record<CategoryKey, string> = {
           character: 'rgba(250, 204, 21, 0.2)',
@@ -75,8 +83,9 @@ export const OptionGrid = ({ category, selected, onSelect, currentStep }: Option
         
         return (
           <motion.button
-            key={option}
-            onClick={() => onSelect(category.key, option)}
+            key={String(option) + index}
+            onClick={() => !isSkeleton && onSelect(category.key, option as string)}
+            disabled={loading}
             style={active ? { backgroundColor: bgColorMap[category.key], color: textColorMap[category.key] } : { backgroundColor: '#1f2937', color: 'white' }}
             className={`p-5 text-left rounded-2xl border-2 flex flex-col gap-4 items-center transition relative ${
               active
@@ -87,22 +96,31 @@ export const OptionGrid = ({ category, selected, onSelect, currentStep }: Option
             whileHover={{ scale: 1.02, backgroundColor: active ? undefined : 'rgb(55, 65, 81)' }}
             whileTap={{ scale: 0.98 }}
           >
-            {isPassed && !active && (
-              <motion.div 
-                className="absolute top-2 right-2 text-xl"
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ type: 'spring', stiffness: 200 }}
-              >
-                ✓
-              </motion.div>
+            {isSkeleton ? (
+              <div className="w-full space-y-3">
+                <div className="h-16 rounded-2xl bg-gray-700/60 animate-pulse" />
+                <div className="h-4 rounded-full bg-gray-700/60 animate-pulse w-3/4" />
+              </div>
+            ) : (
+              <>
+                {isPassed && !active && (
+                  <motion.div 
+                    className="absolute top-2 right-2 text-xl"
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 200 }}
+                  >
+                    ✓
+                  </motion.div>
+                )}
+                <p className="text-6xl flex-shrink-0">{emoji}</p>
+                <div>
+                  <p className={`font-bold text-xl ${active ? colors.text : 'text-white'}`}>
+                    {option}
+                  </p>
+                </div>
+              </>
             )}
-            <p className="text-6xl flex-shrink-0">{emoji}</p>
-            <div>
-              <p className={`font-bold text-xl ${active ? colors.text : 'text-white'}`}>
-                {option}
-              </p>
-            </div>
           </motion.button>
         )
       })}
