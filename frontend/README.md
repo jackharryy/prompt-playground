@@ -1,48 +1,61 @@
-AI Scratch frontend
-====================
+AI Scratch Builder — Frontend
+=============================
 
-Quick notes for running the `frontend` and the optional OpenRouter proxy.
+This directory contains the React + Vite frontend for the AI Scratch Builder app.
 
-Frontend scripts (run inside `frontend/`):
+Quick commands (run inside `frontend/`)
+--------------------------------------
+- Install dependencies:
 
-- `npm install` — install frontend deps
-- `npm run dev` — start Vite dev server
-- `npm run build` — production build
-- `npm run preview` — preview the production build
+```bash
+npm install
+```
 
-Proxy scripts (from frontend directory):
+- Start development server:
 
-- `npm run proxy:dev` — start the local proxy in `../proxy` in dev mode
-- `npm run proxy:start` — start the local proxy in production mode
-- `npm run dev:all` — convenience command that starts the proxy (dev) in background and then the frontend dev server
+```bash
+npm run dev
+```
+
+- Production build:
+
+```bash
+npm run build
+npm run preview
+```
+
+Proxy helpers
+-------------
+From the `frontend/` directory you can use helper npm scripts that start the proxy in `../proxy`:
+
+- `npm run proxy:dev` — start the proxy in dev mode
+- `npm run proxy:start` — start the proxy in production mode
+- `npm run dev:all` — convenience script that starts the proxy (dev) and then the frontend dev server
 
 Environment variables
+---------------------
+Frontend:
+- `VITE_OPENROUTER_PROXY` — URL of the proxy endpoint (e.g. `http://localhost:8787/openrouter`)
+- `VITE_OPENROUTER_KEY` — client-side OpenRouter key (not recommended; prefer proxy)
+- `VITE_OPENROUTER_MODEL` — optional default model name
 
-- Frontend (in `.env` or your shell):
-  - `VITE_OPENROUTER_PROXY` — set to the proxy URL, e.g. `http://localhost:8787/openrouter`
-  - `VITE_OPENROUTER_KEY` — (client-side use only) OpenRouter API key if you choose to call OpenRouter directly from the browser (not recommended)
-  - `VITE_OPENROUTER_MODEL` — optional default model name used by the OpenRouter adapter
+Proxy (see `proxy/.env.example`):
+- `OPENROUTER_KEY` — server-side OpenRouter key (keep secret)
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `OAUTH_REDIRECT` — only needed if using Google sign-in
 
-- Proxy (copy `proxy/.env.example` → `proxy/.env`):
-  - `OPENROUTER_KEY` — your server-side OpenRouter key (keep this secret)
-  - `PORT` — port to run the proxy (default `8787`)
+How auth + keys work
+--------------------
+- If Google OAuth is configured, users can sign in from the frontend. The proxy manages sessions and stores per-user API keys in `proxy/store.json`.
+- The frontend shows an Account UI to paste and save an OpenRouter key for the signed-in user.
 
-Security notes
+Development notes
+-----------------
+- Adapter code lives in `src/ai/`. `OpenRouterAdapter` is used for real AI calls.
+- Option and emoji generation is implemented as small AI agents under `src/ai/`.
+- PWA config is in `public/manifest.json` and `dev-dist` contains service worker helpers.
 
-- Do NOT commit your secret keys. Keep `proxy/.env` out of git.
-- Prefer using the server-side proxy (`proxy/`) so the OpenRouter key is never exposed to clients.
+Security
+--------
+- Do not commit secrets. Prefer the proxy for server-side calls so the OpenRouter key remains private.
 
-How the AI integration works
-
-- The app includes a decoupled adapter system in `src/ai/`.
-- Only `OpenRouterAdapter` is enabled by default.
-- Set `VITE_OPENROUTER_PROXY` to point at the proxy to use it safely.
-
-PWA
-
-- The frontend is configured with `vite-plugin-pwa`; manifest is at `public/manifest.json`.
-
-Questions or next steps
-
-- I can add a simple Express logging/rate-limit middleware to the proxy.
-- I can add a deploy-ready serverless function example (Vercel/Netlify) if you plan to host the proxy.
+Want me to run the frontend and the proxy locally and verify sign-in and `proxy/store.json` creation? Reply yes and provide Google OAuth creds (or I can guide you to create them).

@@ -1,55 +1,74 @@
-Prompt Playground
-=================
+AI Scratch Builder (Prompt Playground)
+=====================================
 
-This repository contains two services:
+This repository contains a small React + Vite frontend and an Express proxy used to safely forward OpenRouter requests.
 
-- `frontend/` — the React + Vite app (Tailwind + PWA)
-- `proxy/` — a small Express proxy for forwarding OpenRouter requests securely
+Repository layout
+-----------------
+- [frontend/](frontend/README.md) — React + Vite app (TypeScript, Tailwind, PWA)
+- [proxy/](proxy/README.md) — Node/Express proxy that handles OAuth and forwards OpenRouter calls
 
-Quick start
------------
-
-1. Install dependencies at the repo root to get helper tools:
+Quick start (development)
+-------------------------
+1. Install repo-level helpers (optional):
 
 ```bash
 npm install
 ```
 
-2. Copy proxy env and add your OpenRouter key:
-
-```bash
-cp proxy/.env.example proxy/.env
-# edit proxy/.env and set OPENROUTER_KEY
-```
-
-3. Start both services (this script will auto-create `proxy/.env` from the example if missing):
+2. Start both services (recommended):
 
 ```bash
 npm run dev
 ```
 
-Alternative commands
---------------------
-- Start proxy only: `npm run proxy:dev`
-- Start frontend only: `npm run frontend:dev`
-- Start both in parallel without the pre-check: `npm run dev:all`
+3. Or start services individually:
 
-Environment variables
+- Start the proxy only:
+
+```bash
+npm run proxy:dev
+```
+
+- Start the frontend only:
+
+```bash
+npm run frontend:dev
+```
+
+Important files and locations
+-----------------------------
+- Adapter code: [frontend/src/ai](frontend/src/ai)
+- Account and auth UI: [frontend/src/components/Account.tsx](frontend/src/components/Account.tsx)
+- Proxy server: [proxy/index.js](proxy/index.js)
+- Proxy persisted store: `proxy/store.json` (created on first login or you can create it manually)
+
+Environment / secrets
 ---------------------
-- `proxy/.env` — contains `OPENROUTER_KEY` for the proxy.
-- Frontend may use `VITE_OPENROUTER_PROXY` to point to the proxy (e.g. `http://localhost:8787/openrouter`).
+- See [proxy/.env.example](proxy/.env.example) for proxy environment variables. Key variables include:
+  - `OPENROUTER_KEY` — optional global OpenRouter key (server-side)
+  - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` — for Google OAuth (optional, used for login)
+  - `OAUTH_REDIRECT` — OAuth redirect URL (default `http://localhost:8787/auth/google/callback`)
+- Frontend uses `VITE_OPENROUTER_PROXY` to point to the proxy, e.g. `http://localhost:8787/openrouter`.
+
+Notes on `proxy/store.json`
+---------------------------
+- The proxy writes `proxy/store.json` when a user signs in or saves an OpenRouter key. It does not exist until the first interaction.
+- You can pre-create it with:
+
+```bash
+echo '{"users":{},"sessions":{}}' > proxy/store.json
+```
 
 Security
 --------
-Do not commit `proxy/.env` or any secret keys.
+- Do not commit `.env` files containing secrets.
+- Stored API keys are saved in plaintext in `proxy/store.json` for the prototype — rotate keys and migrate to an encrypted store or database for production.
 
-Files of interest
------------------
-- `frontend/src/ai` — adapter abstraction and example adapters
-- `frontend/src/components/AiConsole.tsx` — UI for interacting with adapters
-- `proxy/index.js` — the express proxy
+Next steps / recommendations
+----------------------------
+- Provide Google OAuth credentials and test sign-in flows.
+- Migrate the file-backed store to SQLite (recommended) and add session expiry + cookie security.
+- Add rate-limiting and request logging to the proxy before public deployment.
 
-Next steps
-----------
-- Add rate limiting / logging middleware to the proxy before public deployment.
-- Add CI steps for building the frontend and deploying the proxy.
+If you want, I can update the README files in `frontend/` and `proxy/` now — confirm and I'll proceed.

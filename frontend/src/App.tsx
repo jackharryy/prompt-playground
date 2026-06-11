@@ -9,6 +9,8 @@ import { StepCards } from './components/StepCards'
 import { OptionGrid } from './components/OptionGrid'
 import { SpellPreview } from './components/SpellPreview'
 import { AiConsole } from './components/AiConsole'
+import Account from './components/Account'
+import { getMe } from './api/auth'
 
 const defaultStageOptions = categories.reduce((acc, category) => {
   acc[category.key] = category.options
@@ -28,6 +30,23 @@ const initialGeneratedState: Record<CategoryKey, boolean> = {
 }
 
 const App = () => {
+  const [me, setMe] = useState<{ authenticated: boolean; email?: string; name?: string } | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+    getMe().then((d) => { if (mounted) setMe(d) })
+    return () => { mounted = false }
+  }, [])
+
+  if (me && !me.authenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="max-w-md w-full space-y-4">
+          <Account />
+        </div>
+      </div>
+    )
+  }
   const [currentStep, setCurrentStep] = useState(0)
   const [selected, setSelected] = useState<SelectedState>({
     character: '',
