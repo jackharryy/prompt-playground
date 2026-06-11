@@ -9,21 +9,21 @@ app.use(cors())
 app.use(express.json())
 
 const PORT = process.env.PORT || 8787
-const OPENAI_API = 'https://api.openai.com/v1/chat/completions'
-const OPENAI_KEY = process.env.OPENAI_KEY
+const OPENROUTER_API = 'https://openrouter.ai/api/v1/chat/completions'
+const OPENROUTER_KEY = process.env.OPENROUTER_KEY
 
-if (!OPENAI_KEY) console.warn('Warning: OPENAI_KEY not set. The proxy will reject requests without a key.')
+if (!OPENROUTER_KEY) console.warn('Warning: OPENROUTER_KEY not set. The proxy will reject requests without a key.')
 
-app.post('/openai', async (req, res) => {
+app.post('/openrouter', async (req, res) => {
   try {
-    if (!OPENAI_KEY) return res.status(500).json({ error: 'Server missing OPENAI_KEY' })
+    if (!OPENROUTER_KEY) return res.status(500).json({ error: 'Server missing OPENROUTER_KEY' })
 
     const body = req.body || {}
 
-    const response = await fetch(OPENAI_API, {
+    const response = await fetch(OPENROUTER_API, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_KEY}`,
+        'Authorization': `Bearer ${OPENROUTER_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),

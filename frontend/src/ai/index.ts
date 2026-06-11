@@ -1,10 +1,10 @@
 import { AiAdapter } from './types'
 import { MockAdapter } from './mockAdapter'
-import { OpenAiAdapter } from './openaiAdapter'
+import { OpenRouterAdapter } from './openrouterAdapter';
 
 export const adapters: Record<string, AiAdapter> = {
   [MockAdapter.id]: MockAdapter,
-  [OpenAiAdapter.id]: OpenAiAdapter,
+  [OpenRouterAdapter.id]: OpenRouterAdapter,
 }
 
 export const defaultAdapterId = MockAdapter.id
