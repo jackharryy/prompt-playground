@@ -1,12 +1,12 @@
 AI Scratch Proxy
 =================
 
-Small Node/Express proxy for forwarding OpenAI ChatCompletions requests from the browser without exposing your secret key.
+Small Node/Express proxy for forwarding OpenRouter chat requests from the browser without exposing your secret key.
 
 Usage
 -----
 
-1. Copy `.env.example` to `.env` and set your `OPENAI_KEY`.
+1. Copy `.env.example` to `.env` and set your `OPENROUTER_KEY`.
 
 2. Install dependencies and run:
 
@@ -16,11 +16,11 @@ npm install
 npm start
 ```
 
-3. In your frontend, set `VITE_OPENAI_PROXY` to `http://localhost:8787/openai`.
+3. In your frontend, set `VITE_OPENROUTER_PROXY` to `http://localhost:8787/openrouter`.
 
 Request format
 --------------
-The proxy forwards the request body to OpenAI as-is. Example body:
+The proxy forwards the request body to OpenRouter as-is. Example body:
 
 ```json
 {
@@ -31,4 +31,4 @@ The proxy forwards the request body to OpenAI as-is. Example body:
 
 Security
 --------
-- Keep `OPENAI_KEY` on the server only. Do not commit `.env`.
+- Keep `OPENROUTER_KEY` on the server only. Do not commit `.env`.

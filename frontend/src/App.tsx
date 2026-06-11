@@ -31,6 +31,18 @@ const App = () => {
     return template(selected)
   }, [selected, regenerateSeed])
 
+  const systemPrompt = useMemo(() => {
+    return (
+      `You are a friendly AI hero created by a child ages 5 to 8. You will be talking directly to the child who built you, and you should take on the persona of the configured hero.
+
+` +
+      `Hero description: ${story}
+
+` +
+      'Respond in simple, cheerful language that feels safe, playful, and easy to understand. Act like a brave, kind hero who wants to help the child and make the story come alive.'
+    )
+  }, [story])
+
   const handleSelect = (key: keyof SelectedState, item: string) => {
     setSelected((prev) => ({ ...prev, [key]: item }))
   }
@@ -92,7 +104,7 @@ const App = () => {
 
         {currentStep === categories.length - 1 && (
           <div>
-            <AiConsole systemPrompt={story} />
+            <AiConsole systemPrompt={systemPrompt} />
           </div>
         )}
 
@@ -115,7 +127,7 @@ const App = () => {
               disabled={!isSelected}
               className="px-6 py-3 rounded-2xl bg-gray-800 text-white border-2 border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700"
             >
-              {ttsState === 'speaking' ? 'Listening...' : 'Hear spell'}
+              {ttsState === 'speaking' ? 'Listening...' : 'Hear hero'}
             </button>
           )}
           <button
@@ -123,7 +135,7 @@ const App = () => {
             disabled={!isSelected}
             className="flex-1 px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600"
           >
-            {currentStep === categories.length - 1 ? 'New spell' : 'Next'}
+            {currentStep === categories.length - 1 ? 'New hero' : 'Next'}
           </button>
         </motion.div>
       </motion.div>

@@ -1,7 +1,7 @@
 AI Scratch frontend
 ====================
 
-Quick notes for running the `frontend` and the optional OpenAI proxy.
+Quick notes for running the `frontend` and the optional OpenRouter proxy.
 
 Frontend scripts (run inside `frontend/`):
 
@@ -19,24 +19,24 @@ Proxy scripts (from frontend directory):
 Environment variables
 
 - Frontend (in `.env` or your shell):
-  - `VITE_OPENAI_PROXY` — set to the proxy URL, e.g. `http://localhost:8787/openai`
-  - `VITE_OPENAI_KEY` — (client-side use only) OpenAI API key if you choose to call OpenAI directly from the browser (not recommended)
-  - `VITE_OPENAI_MODEL` — optional default model name used by the example adapter
+  - `VITE_OPENROUTER_PROXY` — set to the proxy URL, e.g. `http://localhost:8787/openrouter`
+  - `VITE_OPENROUTER_KEY` — (client-side use only) OpenRouter API key if you choose to call OpenRouter directly from the browser (not recommended)
+  - `VITE_OPENROUTER_MODEL` — optional default model name used by the OpenRouter adapter
 
 - Proxy (copy `proxy/.env.example` → `proxy/.env`):
-  - `OPENAI_KEY` — your server-side OpenAI key (keep this secret)
+  - `OPENROUTER_KEY` — your server-side OpenRouter key (keep this secret)
   - `PORT` — port to run the proxy (default `8787`)
 
 Security notes
 
 - Do NOT commit your secret keys. Keep `proxy/.env` out of git.
-- Prefer using the server-side proxy (`proxy/`) so the OpenAI key is never exposed to clients.
+- Prefer using the server-side proxy (`proxy/`) so the OpenRouter key is never exposed to clients.
 
 How the AI integration works
 
 - The app includes a decoupled adapter system in `src/ai/`.
-- `MockAdapter` is enabled by default for local testing.
-- An `OpenAiAdapter` example is provided; set `VITE_OPENAI_PROXY` to point at the proxy to use it safely.
+- Only `OpenRouterAdapter` is enabled by default.
+- Set `VITE_OPENROUTER_PROXY` to point at the proxy to use it safely.
 
 PWA
 

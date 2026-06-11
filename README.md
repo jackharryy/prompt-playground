@@ -4,7 +4,7 @@ Prompt Playground
 This repository contains two services:
 
 - `frontend/` — the React + Vite app (Tailwind + PWA)
-- `proxy/` — a small Express proxy for forwarding OpenAI requests securely
+- `proxy/` — a small Express proxy for forwarding OpenRouter requests securely
 
 Quick start
 -----------
@@ -15,11 +15,11 @@ Quick start
 npm install
 ```
 
-2. Copy proxy env and add your OpenAI key:
+2. Copy proxy env and add your OpenRouter key:
 
 ```bash
 cp proxy/.env.example proxy/.env
-# edit proxy/.env and set OPENAI_KEY
+# edit proxy/.env and set OPENROUTER_KEY
 ```
 
 3. Start both services (this script will auto-create `proxy/.env` from the example if missing):
@@ -36,8 +36,8 @@ Alternative commands
 
 Environment variables
 ---------------------
-- `proxy/.env` — contains `OPENAI_KEY` for the proxy.
-- Frontend may use `VITE_OPENAI_PROXY` to point to the proxy (e.g. `http://localhost:8787/openai`).
+- `proxy/.env` — contains `OPENROUTER_KEY` for the proxy.
+- Frontend may use `VITE_OPENROUTER_PROXY` to point to the proxy (e.g. `http://localhost:8787/openrouter`).
 
 Security
 --------

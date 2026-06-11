@@ -18,7 +18,7 @@ export const SpellHeader = () => (
         ease: 'easeInOut'
       }}
     >
-      🔮 Spell Crafter
+      🦸 AI Hero
     </motion.p>
     <motion.p 
       className="text-sm mt-2 text-gray-400"
@@ -26,7 +26,7 @@ export const SpellHeader = () => (
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6, delay: 0.2 }}
     >
-      Mix ingredients to summon an AI spell
+      Pick the pieces and make your very own AI hero
     </motion.p>
   </motion.div>
 )

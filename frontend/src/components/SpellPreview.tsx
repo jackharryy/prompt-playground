@@ -22,7 +22,7 @@ export const SpellPreview = ({ story, visible }: SpellPreviewProps) => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.1 }}
           >
-            SPELL READY
+            HERO READY
           </motion.p>
           <motion.p 
             className="text-sm mt-3 text-white"

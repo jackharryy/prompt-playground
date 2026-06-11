@@ -8,9 +8,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'AI Scratch Builder',
-        short_name: 'Spell Crafter',
-        description: 'An interactive spell-building adventure game',
+        name: 'AI Hero',
+        short_name: 'AI Hero',
+        description: 'Create your very own AI hero for kids aged 5-8',
         theme_color: '#fb923c',
         background_color: '#0f172a',
         display: 'standalone',

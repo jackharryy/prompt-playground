@@ -11,9 +11,9 @@ function ensureProxyEnv() {
   if (!fs.existsSync(proxyEnv)) {
     if (fs.existsSync(proxyExample)) {
       fs.copyFileSync(proxyExample, proxyEnv)
-      console.log('Created proxy/.env from .env.example. Please edit it and add your OPENAI_KEY.')
+      console.log('Created proxy/.env from .env.example. Please edit it and add your OPENROUTER_KEY.')
     } else {
-      console.warn('No proxy/.env or proxy/.env.example found. Create proxy/.env with OPENAI_KEY.')
+      console.warn('No proxy/.env or proxy/.env.example found. Create proxy/.env with OPENROUTER_KEY.')
     }
   } else {
     console.log('proxy/.env exists.')
