@@ -6,7 +6,7 @@ interface OptionGridProps {
   category: Stage
   selected: SelectedState
   onSelect: (key: StageKey, item: string) => void
-  currentStep: number
+  currentStage: number
   loading?: boolean
   error?: string
   emojis?: string[]
@@ -47,9 +47,9 @@ const itemVariants = {
 
 const categories = ['character', 'action', 'topic', 'style'] as const
 
-export const OptionGrid = ({ category, selected, onSelect, currentStep, loading, error, emojis }: OptionGridProps) => {
+export const OptionGrid = ({ category, selected, onSelect, currentStage, loading, error, emojis }: OptionGridProps) => {
   const categoryIndex = categories.indexOf(category.key as typeof categories[number])
-  const isPassed = categoryIndex < currentStep
+  const isPassed = categoryIndex < currentStage
   const colors = getStageColor(category.key)
 
   return (

@@ -1,18 +1,18 @@
 import { motion } from 'framer-motion'
-import { StageKey, type StageCardItem  } from '../data/stages'
+import { StageKey, type StageCardItem } from '../data/stages'
 
 interface StageCardsProps {
   cards: StageCardItem[]
 }
 
-const getStageColor = (stageKey: string): { bg: string; border: string; text: string } => {
+const getCategoryColor = (categoryKey: string): { bg: string; border: string; text: string } => {
   const colors: Record<string, { bg: string; border: string; text: string }> = {
     [StageKey.Character]: { bg: 'bg-yellow-300/20', text: 'text-yellow-400', border: 'border-yellow-300' },
     [StageKey.Action]: { bg: 'bg-blue-300/20', text: 'text-blue-400', border: 'border-blue-300' },
     [StageKey.Topic]: { bg: 'bg-purple-400/20', text: 'text-purple-400', border: 'border-purple-400' },
     [StageKey.Style]: { bg: 'bg-pink-300/20', text: 'text-pink-400', border: 'border-pink-300' },
   }
-  return colors[stageKey] || { bg: '', border: '', text: 'text-white' }
+  return colors[categoryKey] || { bg: '', border: '', text: 'text-white' }
 }
 
 const containerVariants = {
@@ -38,7 +38,7 @@ const cardVariants = {
 }
 
 export const StageCards = ({ cards }: StageCardsProps) => {
-  const currentStageIndex = cards.findIndex(c => c.active)
+  const currentStage = cards.findIndex(c => c.active)
   
   return (
   <motion.div 
@@ -48,8 +48,8 @@ export const StageCards = ({ cards }: StageCardsProps) => {
     animate="visible"
   >
     {cards.map((card, idx) => {
-      const isCompleted = idx < currentStageIndex && card.unlocked
-      const colors = getStageColor(card.key)
+      const isCompleted = idx < currentStage && card.unlocked
+      const colors = getCategoryColor(card.key)
       
       return (
         <motion.div

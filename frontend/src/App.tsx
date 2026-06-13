@@ -5,7 +5,7 @@ import { stages as categories, buildStageCards, getStageLabel, SelectedState, st
 import { generateStageOptions } from './ai/stageGenerator'
 import { generateEmojisForOptions } from './ai/emojiGenerator'
 import { SpellHeader } from './components/SpellHeader'
-import { StepCards } from './components/StepCards'
+import { StageCards } from './components/StageCards'
 import { OptionGrid } from './components/OptionGrid'
 import { SpellPreview } from './components/SpellPreview'
 import { AiConsole } from './components/AiConsole'
@@ -48,7 +48,7 @@ const App = () => {
       </div>
     )
   }
-  const [currentStep, setCurrentStep] = useState(0)
+  const [currentStage, setCurrentStage] = useState(0)
   const [selected, setSelected] = useState<SelectedState>({
     character: '',
     action: '',
@@ -66,7 +66,7 @@ const App = () => {
   })
   const [optionError, setOptionError] = useState<string | undefined>(undefined)
 
-  const currentCategory = categories[currentStep]
+  const currentCategory = categories[currentStage]
   const isSelected = Boolean(selected[currentCategory.key])
 
   const currentCategoryWithOptions = {
@@ -181,20 +181,20 @@ const App = () => {
   }
 
   const handleNext = () => {
-    if (currentStep < categories.length - 1) {
-      setCurrentStep((step) => step + 1)
+    if (currentStage < categories.length - 1) {
+      setCurrentStage((s) => s + 1)
     }
   }
 
   const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep((step) => step - 1)
+    if (currentStage > 0) {
+      setCurrentStage((s) => s - 1)
     }
   }
 
   const handleCast = () => {
     setSelected({ character: '', action: '', topic: '', style: '' })
-    setCurrentStep(0)
+    setCurrentStage(0)
     setGeneratedStages(initialGeneratedState)
     setOptionError(undefined)
   }
@@ -205,8 +205,8 @@ const App = () => {
     speak(story)
   }
 
-  const stageCards = buildStageCards(selected, currentStep)
-  const currentStageLabel = getStageLabel(currentStep)
+  const stageCards = buildStageCards(selected, currentStage)
+  const currentStageLabel = getStageLabel(currentStage)
 
   return (
     <motion.div 
@@ -217,11 +217,11 @@ const App = () => {
     >
       <motion.div className="max-w-5xl mx-auto space-y-6">
         <SpellHeader />
-        <StepCards cards={stageCards} />
+        <StageCards cards={stageCards} />
 
         <motion.div 
           className=""
-          key={currentStep}
+          key={currentStage}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
@@ -237,16 +237,16 @@ const App = () => {
             category={currentCategoryWithOptions}
             selected={selected}
             onSelect={handleSelect}
-            currentStep={currentStep}
+            currentStage={currentStage}
             loading={loadingStages[currentCategory.key]}
             error={optionError}
             emojis={stageEmojis[currentCategory.key]}
           />
         </motion.div>
 
-        <SpellPreview story={story} visible={currentStep === categories.length - 1} />
+        <SpellPreview story={story} visible={currentStage === categories.length - 1} />
 
-        {currentStep === categories.length - 1 && (
+        {currentStage === categories.length - 1 && (
           <div>
             <AiConsole systemPrompt={systemPrompt} />
           </div>
@@ -260,12 +260,12 @@ const App = () => {
         >
           <button
             onClick={handleBack}
-            disabled={currentStep === 0}
+            disabled={currentStage === 0}
             className="px-6 py-3 rounded-2xl bg-gray-800 text-white border-2 border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700"
           >
             Back
           </button>
-          {currentStep === categories.length - 1 && (
+          {currentStage === categories.length - 1 && (
             <button
               onClick={handleListen}
               disabled={!isSelected}
@@ -275,11 +275,11 @@ const App = () => {
             </button>
           )}
           <button
-            onClick={currentStep === categories.length - 1 ? handleCast : handleNext}
+            onClick={currentStage === categories.length - 1 ? handleCast : handleNext}
             disabled={!isSelected}
             className="flex-1 px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600"
           >
-            {currentStep === categories.length - 1 ? 'New hero' : 'Next'}
+            {currentStage === categories.length - 1 ? 'New hero' : 'Next'}
           </button>
         </motion.div>
       </motion.div>
