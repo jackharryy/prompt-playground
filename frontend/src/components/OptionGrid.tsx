@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
-import type { Category, CategoryKey, SelectedState } from '../data/story'
-import { optionEmojis } from '../data/story'
+import type { Category, CategoryKey, SelectedState } from '../data/stages'
+import { optionEmojis } from '../data/stages'
 
 interface OptionGridProps {
   category: Category

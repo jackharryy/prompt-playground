@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import type { StepCardItem } from '../data/story'
+import type { StepCardItem } from '../data/stages'
 
 interface StepCardsProps {
   cards: StepCardItem[]

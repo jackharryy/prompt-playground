@@ -1,32 +1,27 @@
 import { AiMessage } from './types'
 import { OpenRouterAdapter } from './openrouterAdapter'
-import type { CategoryKey, SelectedState } from '../data/story'
-import { categories } from '../data/story'
+import { StageKey } from '../data/stages'
+import type { SelectedState } from '../data/stages'
+import { stages } from '../data/stages'
 
-const defaultOptions: Record<CategoryKey, string[]> = categories.reduce((acc, category) => {
-  acc[category.key] = category.options
+const defaultOptions: Record<StageKey, string[]> = stages.reduce((acc, stage) => {
+  acc[stage.key] = stage.options
   return acc
-}, {} as Record<CategoryKey, string[]>)
+}, {} as Record<StageKey, string[]>)
 
-const stageFriendlyName: Record<CategoryKey, string> = {
-  character: 'hero',
-  action: 'action',
-  topic: 'place',
-  style: 'style',
-}
 
-const buildPrompt = (stage: CategoryKey, selected: SelectedState) => {
+const buildPrompt = (stage: StageKey, selected: SelectedState) => {
   switch (stage) {
-    case 'character':
+    case StageKey.Character:
       return `You are helping a child aged 5 to 8 build a fun AI hero. Create 4 different hero ideas. Keep each one short, playful, and easy to read, like "Brave astronaut" or "Magic unicorn". Output only a valid JSON array of four strings.`
 
-    case 'action':
+    case StageKey.Action:
       return `The hero is ${selected.character}. Give 4 different fun things that hero could do. Keep each choice short and child-friendly, like "Find a hidden treasure" or "Help a friend". Output only a valid JSON array of four strings.`
 
-    case 'topic':
+    case StageKey.Topic:
       return `The hero is ${selected.character} and they will ${selected.action}. Give 4 different child-friendly places where that story could happen. Keep each option short and playful. Output only a valid JSON array of four strings.`
 
-    case 'style':
+    case StageKey.Style:
       return `The hero is ${selected.character}, they ${selected.action}, and the story happens in ${selected.topic}. Give 4 different simple style words or phrases that describe how the hero should feel or look, like "Sparkly" or "Brave and bold". Output only a valid JSON array of four strings.`
 
     default:
@@ -54,7 +49,7 @@ const parseOptions = (text: string): string[] => {
     .filter(Boolean)
 }
 
-export const generateStageOptions = async (stage: CategoryKey, selected: SelectedState): Promise<string[]> => {
+export const generateStageOptions = async (stage: StageKey, selected: SelectedState): Promise<string[]> => {
   const prompt = buildPrompt(stage, selected)
   const systemPrompt = `You are a friendly helper that creates simple and playful choices for children aged 5 to 8.`
   const messages: AiMessage[] = [{ role: 'user', content: prompt }]

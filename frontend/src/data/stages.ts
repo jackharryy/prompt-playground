@@ -1,46 +1,51 @@
-export type CategoryKey = 'character' | 'action' | 'topic' | 'style'
+export enum StageKey {
+  Character = 'character',
+  Action = 'action',
+  Topic = 'topic',
+  Style = 'style',
+}
 
-export type Category = {
-  key: CategoryKey
+export type Stage = {
+  key: StageKey
   title: string
   subtitle: string
   options: string[]
 }
 
-export type SelectedState = Record<CategoryKey, string>
+export type SelectedState = Record<StageKey, string>
 
-export const categories: Category[] = [
+export const stages: Stage[] = [
   {
-    key: 'character',
+    key: StageKey.Character,
     title: 'Hero',
     subtitle: 'Pick a hero',
     options: ['Brave astronaut', 'Friendly dragon', 'Curious detective', 'Magic unicorn'],
   },
   {
-    key: 'action',
+    key: StageKey.Action,
     title: 'Action',
     subtitle: 'Pick what to do',
     options: ['Find a hidden treasure', 'Solve a secret mystery', 'Help a friend', 'Explore a new planet'],
   },
   {
-    key: 'topic',
+    key: StageKey.Topic,
     title: 'World',
     subtitle: 'Pick a place',
     options: ['Space school', 'Jungle world', 'Fantasy kingdom', 'Science fair'],
   },
   {
-    key: 'style',
+    key: StageKey.Style,
     title: 'Style',
     subtitle: 'Pick a look',
     options: ['Sparkly', 'Brave and bold', 'Silly and funny', 'Peaceful and kind'],
   },
 ]
 
-export const optionEmojis: Record<CategoryKey, string[]> = {
-  character: ['🚀', '🐉', '🕵️', '🦄'],
-  action: ['🗺️', '🕵️‍♂️', '🤝', '🪐'],
-  topic: ['🏫', '🌴', '🏰', '🔬'],
-  style: ['✨', '🦸', '🤪', '💖'],
+export const optionEmojis: Record<StageKey, string[]> = {
+  [StageKey.Character]: ['🚀', '🐉', '🕵️', '🦄'],
+  [StageKey.Action]: ['🗺️', '🕵️‍♂️', '🤝', '🪐'],
+  [StageKey.Topic]: ['🏫', '🌴', '🏰', '🔬'],
+  [StageKey.Style]: ['✨', '🦸', '🤪', '💖'],
 }
 
 export const storyTemplates: Array<(selected: SelectedState) => string> = [
@@ -52,8 +57,8 @@ export const storyTemplates: Array<(selected: SelectedState) => string> = [
     `A ${style} ${character} woke up in ${topic} and wanted to ${action}. Everyone smiled!`,
 ]
 
-export type StepCardItem = {
-  key: CategoryKey
+export type StageCardItem = {
+  key: StageKey
   label: string
   icon: string
   value: string
@@ -61,8 +66,8 @@ export type StepCardItem = {
   active: boolean
 }
 
-export const getStepLabel = (step: number) => {
-  switch (step) {
+export const getStageLabel = (stage: number) => {
+  switch (stage) {
     case 0:
       return 'Choose your hero'
     case 1:
@@ -74,7 +79,7 @@ export const getStepLabel = (step: number) => {
   }
 }
 
-export const buildStepCards = (selected: SelectedState, currentStep: number): StepCardItem[] => {
+export const buildStageCards = (selected: SelectedState, currentStage: number): StageCardItem[] => {
   return [
     {
       key: 'character',
@@ -82,7 +87,7 @@ export const buildStepCards = (selected: SelectedState, currentStep: number): St
       icon: '🧙',
       value: selected.character || 'a hero',
       unlocked: true,
-      active: currentStep === 0,
+      active: currentStage === 0,
     },
     {
       key: 'action',
@@ -90,7 +95,7 @@ export const buildStepCards = (selected: SelectedState, currentStep: number): St
       icon: '🎯',
       value: selected.action || 'an action',
       unlocked: Boolean(selected.character),
-      active: currentStep === 1,
+      active: currentStage === 1,
     },
     {
       key: 'topic',
@@ -98,7 +103,7 @@ export const buildStepCards = (selected: SelectedState, currentStep: number): St
       icon: '🌌',
       value: selected.topic || 'a world',
       unlocked: Boolean(selected.action),
-      active: currentStep === 2,
+      active: currentStage === 2,
     },
     {
       key: 'style',
@@ -106,7 +111,7 @@ export const buildStepCards = (selected: SelectedState, currentStep: number): St
       icon: '✨',
       value: selected.style || 'a style',
       unlocked: Boolean(selected.topic),
-      active: currentStep === 3,
+      active: currentStage === 3,
     },
   ]
 }
