@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion'
-import type { StepCardItem } from '../data/stages'
+import type { StageCardItem  } from '../data/stages'
 
-interface StepCardsProps {
-  cards: StepCardItem[]
+interface StageCardsProps {
+  cards: StageCardItem[]
 }
 
 const getCategoryColor = (categoryKey: string): { bg: string; border: string; text: string } => {
@@ -37,7 +37,7 @@ const cardVariants = {
   },
 }
 
-export const StepCards = ({ cards }: StepCardsProps) => {
+export const StageCards = ({ cards }: StageCardsProps) => {
   const currentStep = cards.findIndex(c => c.active)
   
   return (

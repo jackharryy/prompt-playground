@@ -82,7 +82,7 @@ export const getStageLabel = (stage: number) => {
 export const buildStageCards = (selected: SelectedState, currentStage: number): StageCardItem[] => {
   return [
     {
-      key: 'character',
+      key: StageKey.Character,
       label: 'WHO',
       icon: '🧙',
       value: selected.character || 'a hero',
@@ -90,7 +90,7 @@ export const buildStageCards = (selected: SelectedState, currentStage: number): 
       active: currentStage === 0,
     },
     {
-      key: 'action',
+      key: StageKey.Action,
       label: 'DOES WHAT',
       icon: '🎯',
       value: selected.action || 'an action',
@@ -98,7 +98,7 @@ export const buildStageCards = (selected: SelectedState, currentStage: number): 
       active: currentStage === 1,
     },
     {
-      key: 'topic',
+      key: StageKey.Topic,
       label: 'WHERE',
       icon: '🌌',
       value: selected.topic || 'a world',
@@ -106,7 +106,7 @@ export const buildStageCards = (selected: SelectedState, currentStage: number): 
       active: currentStage === 2,
     },
     {
-      key: 'style',
+      key: StageKey.Style,
       label: 'HOW',
       icon: '✨',
       value: selected.style || 'a style',

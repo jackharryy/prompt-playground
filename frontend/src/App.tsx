@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useSpeech } from './hooks/useSpeech'
-import { categories, buildStepCards, getStepLabel, SelectedState, storyTemplates, type CategoryKey, optionEmojis } from './data/story'
+import { stages as categories, buildStageCards, getStageLabel, SelectedState, storyTemplates, type StageKey as CategoryKey, optionEmojis, StageKey } from './data/stages'
 import { generateStageOptions } from './ai/stageGenerator'
 import { generateEmojisForOptions } from './ai/emojiGenerator'
 import { SpellHeader } from './components/SpellHeader'
@@ -12,8 +12,9 @@ import { AiConsole } from './components/AiConsole'
 import Account from './components/Account'
 import { getMe } from './api/auth'
 
-const defaultStageOptions = categories.reduce((acc, category) => {
-  acc[category.key] = category.options
+const defaultStageOptions = categories.reduce((acc: Record<CategoryKey, string[]>, stage) => {
+
+  acc[stage.key] = stage.options
   return acc
 }, {} as Record<CategoryKey, string[]>)
 
@@ -63,7 +64,7 @@ const App = () => {
     topic: false,
     style: false,
   })
-  const [optionError, setOptionError] = useState<string | null>(null)
+  const [optionError, setOptionError] = useState<string | undefined>(undefined)
 
   const currentCategory = categories[currentStep]
   const isSelected = Boolean(selected[currentCategory.key])
@@ -96,7 +97,7 @@ const App = () => {
   }, [story])
 
   const fetchStageOptions = async (stage: CategoryKey) => {
-    setOptionError(null)
+    setOptionError(undefined)
     setLoadingStages((prev) => ({ ...prev, [stage]: true }))
     try {
       const options = await generateStageOptions(stage, selected)
@@ -118,25 +119,25 @@ const App = () => {
 
   useEffect(() => {
     if (!generatedStages.character && !loadingStages.character) {
-      fetchStageOptions('character')
+      fetchStageOptions(StageKey.Character)
     }
   }, [generatedStages.character, loadingStages.character])
 
   useEffect(() => {
     if (selected.character && !generatedStages.action && !loadingStages.action) {
-      fetchStageOptions('action')
+      fetchStageOptions(StageKey.Action)
     }
   }, [selected.character, generatedStages.action, loadingStages.action])
 
   useEffect(() => {
     if (selected.action && !generatedStages.topic && !loadingStages.topic) {
-      fetchStageOptions('topic')
+      fetchStageOptions(StageKey.Topic)
     }
   }, [selected.action, generatedStages.topic, loadingStages.topic])
 
   useEffect(() => {
     if (selected.topic && !generatedStages.style && !loadingStages.style) {
-      fetchStageOptions('style')
+      fetchStageOptions(StageKey.Style)
     }
   }, [selected.topic, generatedStages.style, loadingStages.style])
 
@@ -195,7 +196,7 @@ const App = () => {
     setSelected({ character: '', action: '', topic: '', style: '' })
     setCurrentStep(0)
     setGeneratedStages(initialGeneratedState)
-    setOptionError(null)
+    setOptionError(undefined)
   }
 
   const { ttsState, speak } = useSpeech()
@@ -204,8 +205,8 @@ const App = () => {
     speak(story)
   }
 
-  const stepCards = buildStepCards(selected, currentStep)
-  const currentStepLabel = getStepLabel(currentStep)
+  const stageCards = buildStageCards(selected, currentStep)
+  const currentStageLabel = getStageLabel(currentStep)
 
   return (
     <motion.div 
@@ -216,7 +217,7 @@ const App = () => {
     >
       <motion.div className="max-w-5xl mx-auto space-y-6">
         <SpellHeader />
-        <StepCards cards={stepCards} />
+        <StepCards cards={stageCards} />
 
         <motion.div 
           className=""
@@ -226,7 +227,7 @@ const App = () => {
           transition={{ duration: 0.4 }}
         >
           <p className="text-xs font-bold text-blue-300 tracking-widest uppercase">
-            {currentStepLabel}
+            {currentStageLabel}
           </p>
           {/* <p className="text-lg mt-3 text-white">
             {currentCategory.subtitle}
