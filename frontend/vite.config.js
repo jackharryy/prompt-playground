@@ -29,4 +29,20 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    proxy: {
+      '/api': {
+        target: process.env.VITE_BACKEND_URL || 'http://localhost:8787',
+        changeOrigin: true,
+      },
+      '/auth': {
+        target: process.env.VITE_BACKEND_URL || 'http://localhost:8787',
+        changeOrigin: true,
+      },
+      '/openrouter': {
+        target: process.env.VITE_BACKEND_URL ? `${process.env.VITE_BACKEND_URL}/openrouter` : 'http://localhost:8787',
+        changeOrigin: true,
+      },
+    },
+  },
 })

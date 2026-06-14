@@ -2,61 +2,85 @@ import express from 'express'
 import dotenv from 'dotenv'
 import cors from 'cors'
 import crypto from 'crypto'
-import querystring from 'querystring'
 import fetch from 'node-fetch'
 import fs from 'fs'
 import path from 'path'
+import bcrypt from 'bcryptjs'
 
 const rootEnvPath = path.join(process.cwd(), 'proxy', '.env')
 const localEnvPath = path.join(process.cwd(), '.env')
 dotenv.config({ path: fs.existsSync(rootEnvPath) ? rootEnvPath : localEnvPath })
 
 const app = express()
-app.use(cors())
+app.use(cors({ origin: true, credentials: true, allowedHeaders: ['Content-Type', 'X-Session-Id'] }))
 app.use(express.json())
 
 const PORT = process.env.PORT || 8787
 const OPENROUTER_API = 'https://openrouter.ai/api/v1/chat/completions'
 const GLOBAL_OPENROUTER_KEY = process.env.OPENROUTER_KEY
+const USERS_FILE = path.join(process.cwd(), 'proxy', 'users.txt')
+const SESSIONS_FILE = path.join(process.cwd(), 'proxy', 'sessions.json')
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET
-const OAUTH_REDIRECT = process.env.OAUTH_REDIRECT || `http://localhost:${PORT}/auth/google/callback`
+if (!GLOBAL_OPENROUTER_KEY) console.warn('Note: no GLOBAL OPENROUTER_KEY set. Users can save per-account keys after login.')
 
-if (!GLOBAL_OPENROUTER_KEY) console.warn('Note: no GLOBAL OPENROUTER_KEY set. Users can save per-account keys after SSO.')
-if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) console.warn('Warning: Google OAuth client not configured. SSO will not work until you set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in proxy/.env')
-
-// Simple file-backed store for users and sessions (prototype)
-const STORE_PATH = path.join(process.cwd(), 'proxy', 'store.json')
-
-const defaultStore = { users: {}, sessions: {} }
-
-const loadStore = () => {
+const loadUsers = () => {
   try {
-    if (fs.existsSync(STORE_PATH)) {
-      const raw = fs.readFileSync(STORE_PATH, 'utf8')
-      return JSON.parse(raw)
-    }
+    if (!fs.existsSync(USERS_FILE)) return {}
+    const raw = fs.readFileSync(USERS_FILE, 'utf8').trim()
+    if (!raw) return {}
+    return raw.split(/\r?\n/).reduce((acc, line) => {
+      try {
+        const user = JSON.parse(line)
+        if (user && user.email) acc[user.email] = user
+      } catch (err) {
+        console.warn('Failed to parse user line:', err)
+      }
+      return acc
+    }, {})
   } catch (err) {
-    console.warn('Failed to load store:', err)
-  }
-  return JSON.parse(JSON.stringify(defaultStore))
-}
-
-const saveStore = (store) => {
-  try {
-    fs.writeFileSync(STORE_PATH, JSON.stringify(store, null, 2), 'utf8')
-  } catch (err) {
-    console.warn('Failed to save store:', err)
+    console.warn('Failed to load users:', err)
+    return {}
   }
 }
 
-const store = loadStore()
+const saveUsers = (users) => {
+  try {
+    const data = Object.values(users)
+      .map((user) => JSON.stringify(user))
+      .join('\n')
+    fs.writeFileSync(USERS_FILE, data + '\n', 'utf8')
+  } catch (err) {
+    console.warn('Failed to save users:', err)
+  }
+}
 
-const users = store.users
-const sessions = store.sessions
+const loadSessions = () => {
+  try {
+    if (!fs.existsSync(SESSIONS_FILE)) return {}
+    const raw = fs.readFileSync(SESSIONS_FILE, 'utf8')
+    return raw ? JSON.parse(raw) : {}
+  } catch (err) {
+    console.warn('Failed to load sessions:', err)
+    return {}
+  }
+}
+
+const saveSessions = (sessions) => {
+  try {
+    fs.writeFileSync(SESSIONS_FILE, JSON.stringify(sessions, null, 2), 'utf8')
+  } catch (err) {
+    console.warn('Failed to save sessions:', err)
+  }
+}
+
+const users = loadUsers()
+const sessions = loadSessions()
 
 const getSessionEmail = (req) => {
+  const headerToken = req.headers['x-session-id']
+  if (typeof headerToken === 'string' && headerToken.trim()) {
+    return sessions[headerToken.trim()]
+  }
   const raw = req.headers.cookie || ''
   const match = raw.match(/sessionId=([^;]+)/)
   if (!match) return null
@@ -64,15 +88,26 @@ const getSessionEmail = (req) => {
   return sessions[id]
 }
 
+const getUserFromRequest = (req) => {
+  const email = getSessionEmail(req)
+  return email && users[email] ? users[email] : null
+}
+
+const createSession = (email) => {
+  const sessionId = crypto.randomBytes(16).toString('hex')
+  sessions[sessionId] = email
+  saveSessions(sessions)
+  return sessionId
+}
+
 app.post('/openrouter', async (req, res) => {
   try {
     const body = req.body || {}
 
-    // prefer global key, else per-user key
     let key = GLOBAL_OPENROUTER_KEY
     if (!key) {
-      const email = getSessionEmail(req)
-      if (email && users[email] && users[email].key) key = users[email].key
+      const user = getUserFromRequest(req)
+      if (user && user.key) key = user.key
     }
 
     if (!key) return res.status(403).json({ error: 'No OpenRouter key configured on server or user account' })
@@ -93,88 +128,108 @@ app.post('/openrouter', async (req, res) => {
   }
 })
 
-// Google OAuth login start
-app.get('/auth/google', (_req, res) => {
-  if (!GOOGLE_CLIENT_ID) return res.status(500).send('Google OAuth not configured')
-  const state = crypto.randomBytes(8).toString('hex')
-  const params = {
-    client_id: GOOGLE_CLIENT_ID,
-    redirect_uri: OAUTH_REDIRECT,
-    response_type: 'code',
-    scope: 'openid email profile',
-    state,
-    access_type: 'offline',
-    prompt: 'select_account',
-  }
-  const url = `https://accounts.google.com/o/oauth2/v2/auth?${querystring.stringify(params)}`
-  res.redirect(url)
-})
-
-// OAuth callback
-app.get('/auth/google/callback', async (req, res) => {
+app.post('/auth/register', async (req, res) => {
   try {
-    const code = req.query.code
-    if (!code) return res.status(400).send('Missing code')
+    const { email, password, name } = req.body || {}
+    if (!email || !password) return res.status(400).json({ error: 'Email and password are required' })
 
-    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: querystring.stringify({
-        code,
-        client_id: GOOGLE_CLIENT_ID,
-        client_secret: GOOGLE_CLIENT_SECRET,
-        redirect_uri: OAUTH_REDIRECT,
-        grant_type: 'authorization_code',
-      }),
-    })
-    const tokenJson = await tokenRes.json()
-    const accessToken = tokenJson.access_token
-    if (!accessToken) return res.status(500).send('Failed to get access token')
+    const normalizedEmail = String(email).trim().toLowerCase()
+    if (users[normalizedEmail]) return res.status(400).json({ error: 'User already exists' })
 
-    const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
-    const userJson = await userRes.json()
-    const email = userJson.email
-    const name = userJson.name || email
-    if (!email) return res.status(500).send('Failed to get user email')
-
-    // create user and session
-    if (!users[email]) {
-      users[email] = { email, name, key: null }
-      store.users = users
-      saveStore(store)
+    const passwordHash = await bcrypt.hash(password, 10)
+    const verifyToken = crypto.randomBytes(16).toString('hex')
+    users[normalizedEmail] = {
+      email: normalizedEmail,
+      name: name ? String(name).trim() : normalizedEmail,
+      passwordHash,
+      verified: false,
+      verificationToken: verifyToken,
+      key: null,
     }
-    const sessionId = crypto.randomBytes(16).toString('hex')
-    sessions[sessionId] = email
-    store.sessions = sessions
-    saveStore(store)
-    // set cookie
-    res.cookie('sessionId', sessionId, { httpOnly: true, sameSite: 'lax' })
-    res.redirect('/')
+    saveUsers(users)
+
+    res.json({ ok: true, message: 'User created. Verify email to continue.', verifyToken })
   } catch (err) {
-    console.error(err)
-    res.status(500).send('OAuth error')
+    res.status(500).json({ error: String(err) })
   }
 })
 
-// API to inspect session
-app.get('/api/me', (req, res) => {
-  const email = getSessionEmail(req)
-  if (!email || !users[email]) return res.json({ authenticated: false })
-  const { name } = users[email]
-  res.json({ authenticated: true, email, name })
+app.post('/auth/verify', (req, res) => {
+  try {
+    const { email, token } = req.body || {}
+    if (!email || !token) return res.status(400).json({ error: 'Email and token are required' })
+
+    const normalizedEmail = String(email).trim().toLowerCase()
+    const user = users[normalizedEmail]
+    if (!user) return res.status(400).json({ error: 'User not found' })
+    if (user.verified) return res.json({ ok: true, message: 'Email already verified' })
+    if (user.verificationToken !== token) return res.status(400).json({ error: 'Invalid verification token' })
+
+    user.verified = true
+    user.verificationToken = null
+    saveUsers(users)
+    res.json({ ok: true, message: 'Email verified successfully' })
+  } catch (err) {
+    res.status(500).json({ error: String(err) })
+  }
 })
 
-// Save per-user OpenRouter key (server-only)
+app.get('/auth/verify', (req, res) => {
+  const email = String(req.query.email || '').trim().toLowerCase()
+  const token = String(req.query.token || '').trim()
+  if (!email || !token) return res.status(400).json({ error: 'Missing email or token' })
+  const user = users[email]
+  if (!user) return res.status(400).json({ error: 'User not found' })
+  if (user.verified) return res.json({ ok: true, message: 'Email already verified' })
+  if (user.verificationToken !== token) return res.status(400).json({ error: 'Invalid verification token' })
+  user.verified = true
+  user.verificationToken = null
+  saveUsers(users)
+  res.json({ ok: true, message: 'Email verified successfully' })
+})
+
+app.post('/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body || {}
+    if (!email || !password) return res.status(400).json({ error: 'Email and password are required' })
+
+    const normalizedEmail = String(email).trim().toLowerCase()
+    const user = users[normalizedEmail]
+    if (!user) return res.status(401).json({ error: 'Invalid email or password' })
+    if (!user.verified) return res.status(403).json({ error: 'Email not verified' })
+
+    const validPassword = await bcrypt.compare(password, user.passwordHash)
+    if (!validPassword) return res.status(401).json({ error: 'Invalid email or password' })
+
+    const sessionId = createSession(user.email)
+    res.json({ ok: true, sessionId, email: user.email, name: user.name })
+  } catch (err) {
+    res.status(500).json({ error: String(err) })
+  }
+})
+
+app.post('/auth/logout', (req, res) => {
+  const headerToken = req.headers['x-session-id']
+  if (typeof headerToken === 'string' && headerToken.trim() && sessions[headerToken.trim()]) {
+    delete sessions[headerToken.trim()]
+    saveSessions(sessions)
+  }
+  res.json({ ok: true })
+})
+
+app.get('/api/me', (req, res) => {
+  const user = getUserFromRequest(req)
+  if (!user) return res.json({ authenticated: false })
+  res.json({ authenticated: true, email: user.email, name: user.name })
+})
+
 app.post('/api/key', (req, res) => {
-  const email = getSessionEmail(req)
-  if (!email || !users[email]) return res.status(401).json({ error: 'Not authenticated' })
+  const user = getUserFromRequest(req)
+  if (!user) return res.status(401).json({ error: 'Not authenticated' })
   const { key } = req.body || {}
   if (!key) return res.status(400).json({ error: 'Missing key' })
-  users[email].key = String(key).trim()
-  store.users = users
-  saveStore(store)
+  user.key = String(key).trim()
+  saveUsers(users)
   res.json({ ok: true })
 })
 

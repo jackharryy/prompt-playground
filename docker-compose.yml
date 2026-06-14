@@ -6,7 +6,8 @@ services:
     ports:
       - "5173:5173"
     environment:
-      VITE_OPENROUTER_PROXY: http://localhost:8787/openrouter
+      VITE_BACKEND_URL: http://proxy:8787
+      VITE_OPENROUTER_PROXY: http://proxy:8787/openrouter
       CHOKIDAR_USEPOLLING: "true"
     volumes:
       - .:/app
@@ -17,7 +18,7 @@ services:
   proxy:
     image: node:20-alpine
     working_dir: /app
-    command: sh -c "npm --prefix proxy install --no-package-lock && ./proxy/node_modules/.bin/nodemon --legacy-watch proxy/index.js"
+    command: sh -c "npm --prefix proxy install --no-package-lock && node proxy/index.js"
     ports:
       - "8787:8787"
     env_file:

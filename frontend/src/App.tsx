@@ -31,12 +31,33 @@ const initialGeneratedState: Record<CategoryKey, boolean> = {
 
 const App = () => {
   const [me, setMe] = useState<{ authenticated: boolean; email?: string; name?: string } | null>(null)
+  const [authChecked, setAuthChecked] = useState(false)
 
   useEffect(() => {
     let mounted = true
-    getMe().then((d) => { if (mounted) setMe(d) })
+    getMe()
+      .then((d) => {
+        if (mounted) setMe(d)
+      })
+      .catch(() => {
+        if (mounted) setMe({ authenticated: false })
+      })
+      .finally(() => {
+        if (mounted) setAuthChecked(true)
+      })
     return () => { mounted = false }
   }, [])
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 text-white">
+        <div className="max-w-md w-full rounded-3xl border border-white/10 bg-black/40 p-8 text-center shadow-xl">
+          <p className="text-lg font-semibold">Checking authentication...</p>
+          <p className="mt-2 text-sm text-gray-300">Please wait while the app verifies your session.</p>
+        </div>
+      </div>
+    )
+  }
 
   if (me && !me.authenticated) {
     return (
